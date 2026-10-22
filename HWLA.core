@@ -48,6 +48,16 @@ filesets:
     depend       :
       - bitvis:verification:uvvm
 
+  #---------------------------------------
+  # Lint Files (pre_run hook of lint_ghdl_synth_*)
+  #---------------------------------------
+  files_lint:
+    files:
+      - syn/ghdl/hwla_synth_top.vhd
+      - syn/ghdl/ghdl_synth.sh : {file_type : user, copyto : ghdl_synth.sh}
+      - syn/ghdl/ghdl_synth.mk : {file_type : user, copyto : ghdl_synth.mk}
+    file_type : vhdlSource-2008
+
 #=========================================
 targets:
 #=========================================
@@ -60,6 +70,60 @@ targets:
       - hdl
     toplevel        : hwla
     default_tool    : ghdl
+
+  #---------------------------------------
+  # Lint : -Wall analysis and elaboration (empty simulation)
+  #---------------------------------------
+  lint_ghdl : &lint_ghdl
+    << : *default
+    description     : Lint with GHDL (-Wall analysis and elaboration of hwla_synth_top)
+    toplevel        : hwla_synth_top
+    filesets_append : [files_lint]
+    default_tool    : ghdl
+    tools :
+      ghdl :
+        analyze_options : ["-Wall"]
+
+  #---------------------------------------
+  # Synthesis check : -Wall analysis, ghdl --synth -Wall and elaboration
+  # (no simulation) of hwla_synth_top with the generics of the target.
+  # The pre_run hook adds syn/ghdl/ghdl_synth.mk to the edalize Makefile.
+  # FuseSoC merges tools in depth : analyze_options comes from lint_ghdl.
+  #---------------------------------------
+  lint_ghdl_synth_default : &lint_ghdl_synth
+    << : *lint_ghdl
+    description     : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples)
+    tools :
+      ghdl :
+        run_options     : ["--no-run"]
+    hooks :
+      pre_run : [ghdl_synth]
+
+  #---------------------------------------
+  lint_ghdl_synth_pre_trigger_0 :
+  #---------------------------------------
+    << : *lint_ghdl_synth
+    description     : Synthesis check of hwla_synth_top, no pre-trigger sample
+    parameters      :
+      - PRE_TRIGGER=0
+
+  #---------------------------------------
+  lint_ghdl_synth_pre_trigger_max :
+  #---------------------------------------
+    << : *lint_ghdl_synth
+    description     : Synthesis check of hwla_synth_top, no post-trigger sample
+    parameters      :
+      - PRE_TRIGGER=255
+
+  #---------------------------------------
+  lint_ghdl_synth_min :
+  #---------------------------------------
+    << : *lint_ghdl_synth
+    description     : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples)
+    parameters      :
+      - NB_PROBE=1
+      - DEPTH=2
+      - PRE_TRIGGER=1
 
   #---------------------------------------
   # Simulation : tb_hwla with the generics of the target
@@ -124,11 +188,21 @@ targets:
       - EXTRACT_CLK_PERIOD=10
 
 #=========================================
+scripts:
+#=========================================
+
+  #---------------------------------------
+  # pre_run hook of lint_ghdl_synth_* (cwd = work_root)
+  #---------------------------------------
+  ghdl_synth :
+    cmd : [bash, ghdl_synth.sh]
+
+#=========================================
 parameters :
 #=========================================
 
   #---------------------------------------
-  # Generics of hwla (lint_ghdl_synth_*) and of tb_hwla (sim_*)
+  # Generics of hwla_synth_top (lint_ghdl_synth_*) and of tb_hwla (sim_*)
   #---------------------------------------
   NB_PROBE :
     description : Number of probes (width of a sample)

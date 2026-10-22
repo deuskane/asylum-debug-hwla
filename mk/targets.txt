@@ -1,6 +1,11 @@
-default             : Default Target
-sim_basic           : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, extraction clock slower
-sim_pre_trigger_0   : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, extraction clock faster
-sim_pre_trigger_max : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, extraction clock much slower
-sim_same_period     : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, same period for both clocks
+default                         : Default Target
+lint_ghdl                       : Lint with GHDL (-Wall analysis and elaboration of hwla_synth_top)
+lint_ghdl_synth_default         : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples)
+lint_ghdl_synth_min             : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples)
+lint_ghdl_synth_pre_trigger_0   : Synthesis check of hwla_synth_top, no pre-trigger sample
+lint_ghdl_synth_pre_trigger_max : Synthesis check of hwla_synth_top, no post-trigger sample
+sim_basic                       : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, extraction clock slower
+sim_pre_trigger_0               : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, extraction clock faster
+sim_pre_trigger_max             : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, extraction clock much slower
+sim_same_period                 : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, same period for both clocks
 
