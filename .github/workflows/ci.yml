@@ -7,30 +7,310 @@ on:
     branches: [ main, develop ]
 jobs:
 #<GENERATE_BEGIN>
-  sim_all_samples:
+  sim_all_samples_async_reset:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
     with:
-      name: sim_all_samples
+      name: sim_all_samples_async_reset
 
-  sim_basic:
+  sim_all_samples_back_pressure:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
     with:
-      name: sim_basic
+      name: sim_all_samples_back_pressure
 
-  sim_pre_trigger_0:
+  sim_all_samples_capture:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
     with:
-      name: sim_pre_trigger_0
+      name: sim_all_samples_capture
 
-  sim_pre_trigger_max:
+  sim_all_samples_continuous:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
     with:
-      name: sim_pre_trigger_max
+      name: sim_all_samples_continuous
 
-  sim_same_period:
+  sim_all_samples_first_sample:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
     with:
-      name: sim_same_period
+      name: sim_all_samples_first_sample
+
+  sim_all_samples_frozen:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_all_samples_frozen
+
+  sim_all_samples_late_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_all_samples_late_trigger
+
+  sim_all_samples_level_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_all_samples_level_trigger
+
+  sim_all_samples_not_armed:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_all_samples_not_armed
+
+  sim_all_samples_pre_trigger_ignored:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_all_samples_pre_trigger_ignored
+
+  sim_all_samples_reset_values:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_all_samples_reset_values
+
+  sim_all_samples_sparse:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_all_samples_sparse
+
+  sim_all_samples_stall:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_all_samples_stall
+
+  sim_basic_async_reset:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_async_reset
+
+  sim_basic_back_pressure:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_back_pressure
+
+  sim_basic_capture:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_capture
+
+  sim_basic_continuous:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_continuous
+
+  sim_basic_first_sample:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_first_sample
+
+  sim_basic_late_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_late_trigger
+
+  sim_basic_level_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_level_trigger
+
+  sim_basic_not_armed:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_not_armed
+
+  sim_basic_pre_trigger_ignored:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_pre_trigger_ignored
+
+  sim_basic_reset_values:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_reset_values
+
+  sim_basic_sparse:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_sparse
+
+  sim_basic_stall:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic_stall
+
+  sim_pre_trigger_0_async_reset:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_async_reset
+
+  sim_pre_trigger_0_back_pressure:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_back_pressure
+
+  sim_pre_trigger_0_capture:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_capture
+
+  sim_pre_trigger_0_continuous:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_continuous
+
+  sim_pre_trigger_0_late_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_late_trigger
+
+  sim_pre_trigger_0_level_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_level_trigger
+
+  sim_pre_trigger_0_not_armed:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_not_armed
+
+  sim_pre_trigger_0_reset_values:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_reset_values
+
+  sim_pre_trigger_0_sparse:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_sparse
+
+  sim_pre_trigger_0_stall:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0_stall
+
+  sim_pre_trigger_max_async_reset:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_async_reset
+
+  sim_pre_trigger_max_back_pressure:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_back_pressure
+
+  sim_pre_trigger_max_capture:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_capture
+
+  sim_pre_trigger_max_continuous:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_continuous
+
+  sim_pre_trigger_max_first_sample:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_first_sample
+
+  sim_pre_trigger_max_frozen:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_frozen
+
+  sim_pre_trigger_max_late_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_late_trigger
+
+  sim_pre_trigger_max_level_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_level_trigger
+
+  sim_pre_trigger_max_not_armed:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_not_armed
+
+  sim_pre_trigger_max_pre_trigger_ignored:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_pre_trigger_ignored
+
+  sim_pre_trigger_max_reset_values:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_reset_values
+
+  sim_pre_trigger_max_sparse:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_sparse
+
+  sim_pre_trigger_max_stall:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max_stall
+
+  sim_same_period_async_reset:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_async_reset
+
+  sim_same_period_back_pressure:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_back_pressure
+
+  sim_same_period_capture:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_capture
+
+  sim_same_period_continuous:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_continuous
+
+  sim_same_period_first_sample:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_first_sample
+
+  sim_same_period_frozen:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_frozen
+
+  sim_same_period_late_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_late_trigger
+
+  sim_same_period_level_trigger:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_level_trigger
+
+  sim_same_period_not_armed:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_not_armed
+
+  sim_same_period_pre_trigger_ignored:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_pre_trigger_ignored
+
+  sim_same_period_reset_values:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_reset_values
+
+  sim_same_period_sparse:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_sparse
+
+  sim_same_period_stall:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period_stall
 
   sim_uart:
     uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main

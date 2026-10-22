@@ -177,7 +177,7 @@ This IP has no software-visible registers: the configuration is made of generics
 
 | File | DUT | Description |
 |------|-----|-------------|
-| [sim/basic/tb_hwla.vhd](sim/basic/tb_hwla.vhd) | `hwla` | UVVM testbench, self-checking, generic (configuration of the HWLA and periods of the two asynchronous clocks). The captures are received with the UVVM AXI-Stream BFM (`bitvis_vip_axistream`). A history records the probes and the trigger of each sample as sampled by the HWLA, and a model computes from it the samples stored by each capture (store rules, pre / post-trigger samples, trigger sample); every received sample is checked against the timestamp and the probes of its expected sample. Monitors: first sample of each capture (rise of `armed_o`), AXI-Stream protocol (tvalid, tdata, tlast held while tready = 0, tlast only with tvalid, `DEPTH x NB_BEAT` beats per capture). Probes: COUNT (a change at each sample), SPARSE (a change every 4 samples on average), FROZEN, FORCE. Tests: (1) reset values; (2) trigger ignored while not armed; (3) single capture; (4) triggers ignored during the pre-trigger samples (last pre-trigger sample ignored, next one taken); (5) level trigger already high at the arm; (6) trigger after 3 turns of the circular buffer; (7) random back pressure; (8) long stall: beat held, `arm_i` and trigger ignored until the end of the extraction, no capture afterwards; (9) continuous captures with `arm_i` held high; (10) sparse probes; (11) frozen probes, samples stored at the timestamp 0 only (when `2**TIMESTAMP_WIDTH` is small or `CHANGE_ONLY = false`); (12) first sample of a capture equal to the last stored sample; (13) asynchronous reset during an extraction and capture afterwards |
+| [sim/basic/tb_hwla.vhd](sim/basic/tb_hwla.vhd) | `hwla` | UVVM testbench, self-checking, generic (configuration of the HWLA, periods of the two asynchronous clocks, and `TEST`: one test per simulation, see [Tests](#tests)). The captures are received with the UVVM AXI-Stream BFM (`bitvis_vip_axistream`). A history records the probes and the trigger of each sample as sampled by the HWLA, and a model computes from it the samples stored by each capture (store rules, pre / post-trigger samples, trigger sample); every received sample is checked against the timestamp and the probes of its expected sample. Monitors: first sample of each capture (rise of `armed_o`), AXI-Stream protocol (tvalid, tdata, tlast held while tready = 0, tlast only with tvalid, `DEPTH x NB_BEAT` beats per capture). Probes: COUNT (a change at each sample), SPARSE (a change every 4 samples on average), FROZEN, FORCE. A test not applicable to the generics is an error |
 | [sim/uart/tb_hwla_uart.vhd](sim/uart/tb_hwla_uart.vhd) | `hwla` + `uart_tx_axis` | UVVM testbench of the HWLA (`TDATA_WIDTH = 8`, generics `DEPTH`, `PRE_TRIGGER`, `TIMESTAMP_WIDTH`, `CHANGE_ONLY`) connected to `uart_baud_rate_gen` and `uart_tx_axis` of asylum-communication-uart (no CSR). 8 probes (counter, toggle, pulse, slow value), trigger on a value of the probes, 2 continuous captures. The UART line is received with the UVVM UART BFM (`bitvis_vip_uart`), each byte is checked against the AXI-Stream beat and written in `hwla_uart.hex`; the testbench also writes the reference `hwla_uart_ref.txt` (changes of the probes, trigger samples) and the arguments of the scripts from its generics (`hwla2vcd.args`, `check_vcd.args`). The `post_run` hooks rebuild the VCD files with `tools/hwla2vcd.py` and check them sample by sample with [sim/uart/check_vcd.py](sim/uart/check_vcd.py) |
 
 ### Targets
@@ -185,11 +185,7 @@ This IP has no software-visible registers: the configuration is made of generics
 | Target | Toplevel | Description |
 |--------|----------|-------------|
 | `default` | `hwla` | HDL fileset (not a simulation) |
-| `sim_basic` | `tb_hwla` | 12 probes, 32 samples, 10 pre-trigger samples, 16-bit timestamp, changes only, one 32-bit beat per sample, trigger clock 10 ns, extraction clock 18 ns |
-| `sim_pre_trigger_0` | `tb_hwla` | 8 probes, 16 samples, no pre-trigger sample, 8-bit timestamp, changes only, 2 beats of 8 bits, trigger clock 26 ns, extraction clock 8 ns |
-| `sim_pre_trigger_max` | `tb_hwla` | 33 probes, 64 samples, 63 pre-trigger samples (no post-trigger sample), 4-bit timestamp (frequent wraps), changes only, 3 beats of 16 bits, trigger clock 6 ns, extraction clock 34 ns |
-| `sim_same_period` | `tb_hwla` | 16 probes, 128 samples, 64 pre-trigger samples, no timestamp, every sample stored (behaviour of the version 1.0.0), both clocks 10 ns |
-| `sim_all_samples` | `tb_hwla` | 8 probes, 32 samples, 16 pre-trigger samples, 16-bit timestamp, every sample stored, 32-bit tdata (padding in the beat), trigger clock 14 ns, extraction clock 10 ns |
+| `sim_<configuration>_<test>` | `tb_hwla` | One test of `tb_hwla` on one configuration of the HWLA (61 targets), see [Tests](#tests) |
 | `sim_uart` | `tb_hwla_uart` | HWLA on `uart_tx_axis`, 32 samples, 8 pre-trigger samples, 16-bit timestamp, changes only (3 bytes per sample), then VCD rebuilt by `tools/hwla2vcd.py` and checked (`post_run` hooks) |
 | `sim_uart_no_timestamp` | `tb_hwla_uart` | Same, 64 samples, 16 pre-trigger samples, no timestamp, every sample stored (1 byte per sample) |
 | `lint_ghdl` | `hwla_synth_top` | Lint: GHDL `-Wall` analysis and elaboration (empty simulation) of `hwla` in the wrapper `syn/ghdl/hwla_synth_top.vhd` (work library) |
@@ -200,6 +196,34 @@ This IP has no software-visible registers: the configuration is made of generics
 | `lint_ghdl_synth_uart` | `hwla_synth_top` | Synthesis check, `TDATA_WIDTH = 8` (3 beats per sample) |
 | `lint_ghdl_synth_min` | `hwla_synth_top` | Synthesis check, smallest configuration: 1 probe, 2 samples, no timestamp |
 
+### Tests
+
+`tb_hwla` runs one test per simulation (generic `TEST`), and each test runs on each configuration where it applies: target `sim_<configuration>_<test>` (for example `sim_basic_capture`, `sim_pre_trigger_max_frozen`). The parameters of a target are the configuration and the test.
+
+| Configuration | NB_PROBE | DEPTH | PRE_TRIGGER | TIMESTAMP_WIDTH | CHANGE_ONLY | TDATA_WIDTH | Trigger / extraction clock |
+|---------------|----------|-------|-------------|-----------------|-------------|-------------|----------------------------|
+| `basic` | 12 | 32 | 10 | 16 | true | 0 (one 32-bit beat) | 10 ns / 18 ns |
+| `pre_trigger_0` | 8 | 16 | 0 | 8 | true | 8 (2 beats) | 26 ns / 8 ns |
+| `pre_trigger_max` | 33 | 64 | 63 (no post-trigger sample) | 4 (frequent wraps) | true | 16 (3 beats) | 6 ns / 34 ns |
+| `same_period` | 16 | 128 | 64 | 0 | false (as the version 1.0.0) | 0 (one 16-bit beat) | 10 ns / 10 ns |
+| `all_samples` | 8 | 32 | 16 | 16 | false | 32 (padding in the beat) | 14 ns / 10 ns |
+
+| Test (`TEST`) | Description | Configurations |
+|---------------|-------------|----------------|
+| `reset_values` | Outputs after the reset | all |
+| `not_armed` | Trigger ignored while not armed: no capture, no beat | all |
+| `capture` | Single capture, trigger 7 samples after the pre-trigger samples | all |
+| `pre_trigger_ignored` | Triggers during the pre-trigger samples ignored: last pre-trigger sample ignored, next one taken (`PRE_TRIGGER >= 3`) | all except `pre_trigger_0` |
+| `level_trigger` | Level trigger already high at the arm: trigger sample = first sample after the pre-trigger samples | all |
+| `late_trigger` | Trigger after 3 turns of the circular buffer | all |
+| `back_pressure` | Random back pressure (tready low before random beats) | all |
+| `stall` | Long stall: beat held, `arm_i` and trigger ignored until the end of the extraction, no capture afterwards | all |
+| `continuous` | 3 continuous captures with `arm_i` held high, no capture after `arm_i` low | all |
+| `sparse` | Sparse probes (a change every 4 samples on average), level trigger: often a trigger sample without change | all |
+| `frozen` | Frozen probes: samples stored at the timestamp 0 only (`2**TIMESTAMP_WIDTH <= 64` or `CHANGE_ONLY = false`) | `pre_trigger_max`, `same_period`, `all_samples` |
+| `first_sample` | First sample of a capture equal to the last stored sample of the previous capture: stored anyway (`PRE_TRIGGER > 0`) | all except `pre_trigger_0` |
+| `async_reset` | Asynchronous reset during an extraction: capture lost, new capture afterwards (new origin of the timestamp) | all |
+
 A `lint_ghdl_synth_*` target is `lint_ghdl` with the generics of its configuration (FuseSoC `parameters`) and a `pre_run` hook, `syn/ghdl/ghdl_synth.sh`, which adds `include ghdl_synth.mk` to the Makefile generated by edalize. The run step (`make run EXTRA_OPTIONS=<generics>`) then runs, in the build directory:
 
 1. `ghdl --synth` of the toplevel (rule `ghdl_synth` of [syn/ghdl/ghdl_synth.mk](syn/ghdl/ghdl_synth.mk)), with the options of the target: `STD`, `ANALYZE_OPTIONS` (`-Wall`), `TOPLEVEL_LIBS`, `TOPLEVEL` and the generics. It writes `hwla_synth_top_synth.vhd` (netlist) and `hwla_synth_top_synth.log`, prints the warnings, and fails on a synthesis error (an inferred latch is one);
@@ -209,12 +233,12 @@ To add a configuration, add a target with its `parameters` (the generics are dec
 
 ### How to Run
 
-The default tool is GHDL (`mk/defs.mk`: `TOOL ?= ghdl`, `TARGET ?= sim_basic`).
+The default tool is GHDL (`mk/defs.mk`: `TOOL ?= ghdl`, `TARGET ?= sim_basic_capture`).
 
 ```bash
 make help                 # variables, rules and target list (mk/targets.txt)
-make sim_basic            # run one target (log in log/)
-make nonreg_sim           # run every sim_* target
+make sim_basic_capture    # run one target (log in log/)
+make nonreg_sim           # run every sim_* target (TARGETS_FILTER=<regex> to select, e.g. TARGETS_FILTER=^sim_basic_)
 make lint_ghdl            # GHDL -Wall lint (make nonreg_lint: every lint_* target)
 make lint_ghdl_synth_default   # GHDL -Wall lint + ghdl --synth -Wall check of one configuration
 make clean                # remove build/
@@ -223,7 +247,7 @@ make clean                # remove build/
 Equivalent FuseSoC command:
 
 ```bash
-fusesoc --cores-root . run --build-root build --target sim_basic asylum:debug:HWLA:2.0.0
+fusesoc --cores-root . run --build-root build --target sim_basic_capture asylum:debug:HWLA:2.0.0
 ```
 
 Outside CI, GHDL writes a waveform `dut.fst`. `sim_uart*` also leave `hwla_uart.hex`, `hwla_uart_ref.txt`, `hwla2vcd.args`, `check_vcd.args` and the rebuilt `hwla_uart_0.vcd`, `hwla_uart_1.vcd` in their build directory. CI ([.github/workflows/ci.yml](.github/workflows/ci.yml)) runs every `sim_*` target.

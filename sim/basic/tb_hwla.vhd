@@ -24,15 +24,28 @@
 --                AXI-Stream protocol (tvalid, tdata, tlast held while
 --                tready = 0, tlast only with tvalid, DEPTH*NB_BEAT beats per
 --                capture).
---              Tests : reset values, trigger ignored while not armed, single
---              capture, triggers ignored during the pre-trigger samples,
---              level trigger already high at the arm, trigger after several
---              turns of the circular buffer, random back pressure, long
---              stall with arm_i and trigger ignored during the extraction,
---              continuous captures (arm_i held high), sparse probes, frozen
---              probes (timestamp wrap), first sample of a capture equal to
---              the last stored sample, asynchronous reset during an
---              extraction.
+--              One test per simulation, generic TEST :
+--              * reset_values        : outputs after the reset
+--              * not_armed           : trigger ignored while not armed
+--              * capture             : single capture
+--              * pre_trigger_ignored : triggers ignored during the
+--                                      pre-trigger samples (PRE_TRIGGER >= 3)
+--              * level_trigger       : level trigger already high at the arm
+--              * late_trigger        : trigger after 3 turns of the circular
+--                                      buffer
+--              * back_pressure       : random back pressure
+--              * stall               : long stall, arm_i and trigger ignored
+--                                      during the extraction
+--              * continuous          : continuous captures (arm_i held high)
+--              * sparse              : sparse probes
+--              * frozen              : frozen probes, timestamp wrap
+--                                      (2**TIMESTAMP_WIDTH small, or
+--                                      CHANGE_ONLY = false)
+--              * first_sample        : first sample of a capture equal to the
+--                                      last stored sample (PRE_TRIGGER > 0)
+--              * async_reset         : asynchronous reset during an
+--                                      extraction
+--              A test not applicable to the generics is an error.
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author   Description
@@ -40,6 +53,7 @@
 -- 2026-10-22  2.0      mrosiere Timestamp, CHANGE_ONLY, TDATA_WIDTH : history
 --                               and model of the stored samples, sparse and
 --                               frozen probes
+-- 2026-10-22  2.1      mrosiere One test per simulation (generic TEST)
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -65,7 +79,8 @@ entity tb_hwla is
     CHANGE_ONLY        : boolean  := true; -- true : store a sample only if the probes changed
     TDATA_WIDTH        : natural  := 0;    -- Width of tdata, 0 : one beat per sample
     TRIG_CLK_PERIOD    : positive := 10;   -- Period of the trigger clock (ns, even : integer half period for the UVVM logs)
-    EXTRACT_CLK_PERIOD : positive := 18    -- Period of the extraction clock (ns, even)
+    EXTRACT_CLK_PERIOD : positive := 18;   -- Period of the extraction clock (ns, even)
+    TEST               : string   := "capture" -- Test of the simulation (one test per simulation, see the description)
     );
 end tb_hwla;
 
@@ -576,48 +591,61 @@ begin
     wait for 10*C_TRIG_PERIOD + 10*C_EXTRACT_PERIOD;
     release_resets;
 
-    log(ID_SEQUENCER, "Reset released, starting HWLA basic test : NB_PROBE " & to_string(NB_PROBE) &
+    log(ID_SEQUENCER, "Reset released, starting HWLA test " & TEST & " : NB_PROBE " & to_string(NB_PROBE) &
                       ", DEPTH " & to_string(DEPTH) & ", PRE_TRIGGER " & to_string(PRE_TRIGGER) &
                       ", TIMESTAMP_WIDTH " & to_string(TIMESTAMP_WIDTH) & ", CHANGE_ONLY " & to_string(CHANGE_ONLY) &
                       ", " & to_string(C_NB_BEAT) & " beat(s) of " & to_string(C_TDATA_WIDTH) & " bits per sample" &
                       ", trigger clock " & to_string(C_TRIG_PERIOD) & ", extraction clock " & to_string(C_EXTRACT_PERIOD), C_SCOPE);
 
+    -- One test per simulation : TEST
     ------------------------------------------------
-    log(ID_LOG_HDR, "1. Reset values", C_SCOPE);
+    if    TEST = "reset_values"
     ------------------------------------------------
-    check_value(armed_o        , '0', ERROR, "Reset : armed_o low"        , C_SCOPE);
-    check_value(triggered_o    , '0', ERROR, "Reset : triggered_o low"    , C_SCOPE);
-    check_value(m_axis_tvalid_o, '0', ERROR, "Reset : m_axis_tvalid_o low", C_SCOPE);
-    check_value(m_axis_tlast_o , '0', ERROR, "Reset : m_axis_tlast_o low" , C_SCOPE);
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "2. Not armed : the trigger is ignored", C_SCOPE);
-    ------------------------------------------------
-    set_pulse(probe_cnt + 4, 3);
-    wait for 2*DEPTH*C_TRIG_PERIOD;
-    check_stable(armed_o        , 2*DEPTH*C_TRIG_PERIOD, ERROR, "Not armed : armed_o stays low"        , C_SCOPE);
-    check_stable(triggered_o    , 2*DEPTH*C_TRIG_PERIOD, ERROR, "Not armed : triggered_o stays low"    , C_SCOPE);
-    check_stable(m_axis_tvalid_o, 2*DEPTH*C_TRIG_PERIOD, ERROR, "Not armed : m_axis_tvalid_o stays low", C_SCOPE);
-    pulses <= C_NO_PULSE;
-
-    -- Tests 3 to 9 : COUNT probes (a change at each sample, every sample is
-    -- stored), the trigger sample is known from the schedule
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "3. Capture, trigger 7 samples after the pre-trigger samples", C_SCOPE);
-    ------------------------------------------------
-    arm_capture(v_first, "Capture");
-    set_pulse(v_first + PRE_TRIGGER + 7, 1);
-    wait_trigger   (v_trigger, "Capture");
-    check_value    (v_trigger, v_first + PRE_TRIGGER + 7, ERROR, "Capture : trigger sample", C_SCOPE);
-    receive_capture(v_first, v_trigger, "Capture");
-    wait_idle      ("Capture");
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "4. Triggers during the pre-trigger samples are ignored", C_SCOPE);
-    ------------------------------------------------
-    if PRE_TRIGGER >= 3
     then
+      log(ID_LOG_HDR, "Reset values", C_SCOPE);
+
+      check_value(armed_o        , '0', ERROR, "Reset : armed_o low"        , C_SCOPE);
+      check_value(triggered_o    , '0', ERROR, "Reset : triggered_o low"    , C_SCOPE);
+      check_value(m_axis_tvalid_o, '0', ERROR, "Reset : m_axis_tvalid_o low", C_SCOPE);
+      check_value(m_axis_tlast_o , '0', ERROR, "Reset : m_axis_tlast_o low" , C_SCOPE);
+
+    ------------------------------------------------
+    elsif TEST = "not_armed"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Not armed : the trigger is ignored", C_SCOPE);
+
+      set_pulse(probe_cnt + 4, 3);
+      wait for 2*DEPTH*C_TRIG_PERIOD;
+      check_stable(armed_o        , 2*DEPTH*C_TRIG_PERIOD, ERROR, "Not armed : armed_o stays low"        , C_SCOPE);
+      check_stable(triggered_o    , 2*DEPTH*C_TRIG_PERIOD, ERROR, "Not armed : triggered_o stays low"    , C_SCOPE);
+      check_stable(m_axis_tvalid_o, 2*DEPTH*C_TRIG_PERIOD, ERROR, "Not armed : m_axis_tvalid_o stays low", C_SCOPE);
+      pulses <= C_NO_PULSE;
+
+    ------------------------------------------------
+    elsif TEST = "capture"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Capture, trigger 7 samples after the pre-trigger samples", C_SCOPE);
+
+      arm_capture(v_first, "Capture");
+      set_pulse(v_first + PRE_TRIGGER + 7, 1);
+      wait_trigger   (v_trigger, "Capture");
+      check_value    (v_trigger, v_first + PRE_TRIGGER + 7, ERROR, "Capture : trigger sample", C_SCOPE);
+      receive_capture(v_first, v_trigger, "Capture");
+      wait_idle      ("Capture");
+
+    ------------------------------------------------
+    elsif TEST = "pre_trigger_ignored"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Triggers during the pre-trigger samples are ignored", C_SCOPE);
+
+      if PRE_TRIGGER < 3
+      then
+        alert(TB_ERROR, "Test pre_trigger_ignored not applicable : PRE_TRIGGER lower than 3", C_SCOPE);
+      end if;
+
       -- A pulse on the third sample, a pulse on the last pre-trigger sample
       -- and on the first sample after : this one is the trigger sample
       arm_capture(v_first, "Pre-trigger");
@@ -629,143 +657,164 @@ begin
       check_value    (v_trigger, v_first + PRE_TRIGGER, ERROR, "Pre-trigger : trigger sample", C_SCOPE);
       receive_capture(v_first, v_trigger, "Pre-trigger");
       wait_idle      ("Pre-trigger");
-    else
-      log(ID_SEQUENCER, "Pre-trigger : skipped, PRE_TRIGGER lower than 3", C_SCOPE);
-    end if;
 
     ------------------------------------------------
-    log(ID_LOG_HDR, "5. Level trigger, already high when the capture starts", C_SCOPE);
+    elsif TEST = "level_trigger"
     ------------------------------------------------
-    -- The trigger sample is the first sample after the pre-trigger samples
-    set_pulse(probe_cnt, 4*DEPTH);
-    wait for 3*C_TRIG_PERIOD;
-    arm_capture(v_first, "Level");
-    wait_trigger   (v_trigger, "Level");
-    check_value    (v_trigger, v_first + PRE_TRIGGER, ERROR, "Level : trigger sample", C_SCOPE);
-    receive_capture(v_first, v_trigger, "Level");
-    wait_idle      ("Level");
-    pulses    <= C_NO_PULSE;
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "6. Trigger after 3 turns of the circular buffer", C_SCOPE);
-    ------------------------------------------------
-    arm_capture(v_first, "Late trigger");
-    set_pulse(v_first + PRE_TRIGGER + 3*DEPTH + 5, 1);
-    wait for 3*DEPTH*C_TRIG_PERIOD;
-    check_value(armed_o    , '1', ERROR, "Late trigger : armed_o still high"  , C_SCOPE);
-    check_value(triggered_o, '0', ERROR, "Late trigger : triggered_o still low", C_SCOPE);
-    wait_trigger   (v_trigger, "Late trigger");
-    check_value    (v_trigger, v_first + PRE_TRIGGER + 3*DEPTH + 5, ERROR, "Late trigger : trigger sample", C_SCOPE);
-    receive_capture(v_first, v_trigger, "Late trigger");
-    wait_idle      ("Late trigger");
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "7. Random back pressure (tready low before random beats)", C_SCOPE);
-    ------------------------------------------------
-    v_axis_config.ready_low_at_word_num         := C_MULTIPLE_RANDOM;
-    v_axis_config.ready_low_multiple_random_prob:= 0.5;
-    v_axis_config.ready_low_duration            := C_RANDOM;
-    v_axis_config.ready_low_max_random_duration := 5;
-    arm_capture(v_first, "Back pressure");
-    set_pulse(v_first + PRE_TRIGGER + 3, 1);
-    wait_trigger   (v_trigger, "Back pressure");
-    check_value    (v_trigger, v_first + PRE_TRIGGER + 3, ERROR, "Back pressure : trigger sample", C_SCOPE);
-    receive_capture(v_first, v_trigger, "Back pressure");
-    wait_idle      ("Back pressure");
-    v_axis_config.ready_low_at_word_num         := 0;
-    v_axis_config.ready_low_duration            := 0;
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "8. Long stall : capture held, arm_i and trigger ignored until the end of the extraction", C_SCOPE);
-    ------------------------------------------------
-    arm_capture(v_first, "Stall");
-    set_pulse(v_first + PRE_TRIGGER + 1, 1);
-    wait_trigger(v_trigger, "Stall");
-
-    -- First beat presented, tready low : the beat is held
-    await_value(m_axis_tvalid_o, '1', 0 ns, C_TIMEOUT, ERROR, "Stall : first beat presented", C_SCOPE);
-    wait for 50*C_EXTRACT_PERIOD;
-    check_stable(m_axis_tvalid_o, 50*C_EXTRACT_PERIOD, ERROR, "Stall : tvalid held while tready = 0", C_SCOPE);
-    check_stable(m_axis_tdata_o , 50*C_EXTRACT_PERIOD, ERROR, "Stall : tdata held while tready = 0" , C_SCOPE);
-    check_value (triggered_o    , '1', ERROR, "Stall : triggered_o high until the end of the extraction", C_SCOPE);
-
-    -- A new arm and a new trigger before the end of the extraction
-    v_nb_arm  := nb_arm;
-    wait until falling_edge(trig_clk_i);
-    arm_i     <= '1';
-    set_pulse(probe_cnt, 3);
-    wait until falling_edge(trig_clk_i);
-    arm_i     <= '0';
-    wait for 5*C_TRIG_PERIOD;
-    check_value(nb_arm, v_nb_arm, ERROR, "Stall : arm_i ignored during the extraction", C_SCOPE);
-    pulses    <= C_NO_PULSE;
-
-    receive_capture(v_first, v_trigger, "Stall");
-    wait_idle      ("Stall");
-    wait for 2*DEPTH*C_TRIG_PERIOD;
-    check_value (nb_arm         , v_nb_arm, ERROR, "Stall : no capture after the extraction", C_SCOPE);
-    check_stable(m_axis_tvalid_o, 2*DEPTH*C_TRIG_PERIOD, ERROR, "Stall : m_axis_tvalid_o stays low", C_SCOPE);
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "9. Continuous captures : arm_i held high", C_SCOPE);
-    ------------------------------------------------
-    -- 4 trigger pulses, C_GAP samples apart : a capture per pulse, the next
-    -- capture starts at the end of the extraction of the previous one
-    wait until falling_edge(trig_clk_i);
-    v_nb_arm  := nb_arm;
-    v_pulses  := C_NO_PULSE;
-    for i in 0 to 3 loop
-      v_pulses(i) := (probe_cnt + PRE_TRIGGER + 5 + i*C_GAP, 1);
-    end loop;
-    pulses    <= v_pulses;
-    arm_i     <= '1';
-
-    for i in 1 to 3 loop
-      -- Capture i started
-      if nb_arm /= v_nb_arm + i
-      then
-        wait until nb_arm = v_nb_arm + i for C_TIMEOUT;
-      end if;
-      check_value(nb_arm, v_nb_arm + i, ERROR, "Continuous : capture " & to_string(i) & " started", C_SCOPE);
-      v_first   := arm_sample;
-      wait_trigger(v_trigger, "Continuous " & to_string(i));
-      check_value (v_trigger, first_trigger(pulses, v_first + PRE_TRIGGER), ERROR, "Continuous : first pulse after the pre-trigger samples", C_SCOPE);
-
-      -- No capture after the last one
-      if i = 3
-      then
-        wait until falling_edge(trig_clk_i);
-        arm_i   <= '0';
-      end if;
-
-      receive_capture(v_first, v_trigger, "Continuous " & to_string(i));
-    end loop;
-    wait_idle("Continuous");
-    wait for 2*DEPTH*C_TRIG_PERIOD;
-    check_value(nb_arm, v_nb_arm + 3, ERROR, "Continuous : no capture after arm_i low", C_SCOPE);
-    pulses    <= C_NO_PULSE;
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "10. Sparse probes : a change every 4 samples on average", C_SCOPE);
-    ------------------------------------------------
-    -- Level trigger from a late sample : the trigger sample is often a
-    -- sample without change (stored because it is the trigger sample)
-    probe_mode <= MODE_SPARSE;
-    wait for 4*C_TRIG_PERIOD;
-    for i in 1 to 2 loop
-      arm_capture(v_first, "Sparse " & to_string(i));
-      set_pulse(v_first + 3*PRE_TRIGGER + 5*i, 64*DEPTH);
-      wait_trigger   (v_trigger, "Sparse " & to_string(i));
-      receive_capture(v_first, v_trigger, "Sparse " & to_string(i));
-      wait_idle      ("Sparse " & to_string(i));
-      pulses    <= C_NO_PULSE;
-    end loop;
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "11. Frozen probes : samples stored at the timestamp 0 only", C_SCOPE);
-    ------------------------------------------------
-    if C_FROZEN_TEST
     then
+      log(ID_LOG_HDR, "Level trigger, already high when the capture starts", C_SCOPE);
+
+      -- The trigger sample is the first sample after the pre-trigger samples
+      set_pulse(probe_cnt, 4*DEPTH);
+      wait for 3*C_TRIG_PERIOD;
+      arm_capture(v_first, "Level");
+      wait_trigger   (v_trigger, "Level");
+      check_value    (v_trigger, v_first + PRE_TRIGGER, ERROR, "Level : trigger sample", C_SCOPE);
+      receive_capture(v_first, v_trigger, "Level");
+      wait_idle      ("Level");
+      pulses    <= C_NO_PULSE;
+
+    ------------------------------------------------
+    elsif TEST = "late_trigger"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Trigger after 3 turns of the circular buffer", C_SCOPE);
+
+      arm_capture(v_first, "Late trigger");
+      set_pulse(v_first + PRE_TRIGGER + 3*DEPTH + 5, 1);
+      wait for 3*DEPTH*C_TRIG_PERIOD;
+      check_value(armed_o    , '1', ERROR, "Late trigger : armed_o still high"  , C_SCOPE);
+      check_value(triggered_o, '0', ERROR, "Late trigger : triggered_o still low", C_SCOPE);
+      wait_trigger   (v_trigger, "Late trigger");
+      check_value    (v_trigger, v_first + PRE_TRIGGER + 3*DEPTH + 5, ERROR, "Late trigger : trigger sample", C_SCOPE);
+      receive_capture(v_first, v_trigger, "Late trigger");
+      wait_idle      ("Late trigger");
+
+    ------------------------------------------------
+    elsif TEST = "back_pressure"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Random back pressure (tready low before random beats)", C_SCOPE);
+
+      v_axis_config.ready_low_at_word_num         := C_MULTIPLE_RANDOM;
+      v_axis_config.ready_low_multiple_random_prob:= 0.5;
+      v_axis_config.ready_low_duration            := C_RANDOM;
+      v_axis_config.ready_low_max_random_duration := 5;
+      arm_capture(v_first, "Back pressure");
+      set_pulse(v_first + PRE_TRIGGER + 3, 1);
+      wait_trigger   (v_trigger, "Back pressure");
+      check_value    (v_trigger, v_first + PRE_TRIGGER + 3, ERROR, "Back pressure : trigger sample", C_SCOPE);
+      receive_capture(v_first, v_trigger, "Back pressure");
+      wait_idle      ("Back pressure");
+      v_axis_config.ready_low_at_word_num         := 0;
+      v_axis_config.ready_low_duration            := 0;
+
+    ------------------------------------------------
+    elsif TEST = "stall"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Long stall : capture held, arm_i and trigger ignored until the end of the extraction", C_SCOPE);
+
+      arm_capture(v_first, "Stall");
+      set_pulse(v_first + PRE_TRIGGER + 1, 1);
+      wait_trigger(v_trigger, "Stall");
+
+      -- First beat presented, tready low : the beat is held
+      await_value(m_axis_tvalid_o, '1', 0 ns, C_TIMEOUT, ERROR, "Stall : first beat presented", C_SCOPE);
+      wait for 50*C_EXTRACT_PERIOD;
+      check_stable(m_axis_tvalid_o, 50*C_EXTRACT_PERIOD, ERROR, "Stall : tvalid held while tready = 0", C_SCOPE);
+      check_stable(m_axis_tdata_o , 50*C_EXTRACT_PERIOD, ERROR, "Stall : tdata held while tready = 0" , C_SCOPE);
+      check_value (triggered_o    , '1', ERROR, "Stall : triggered_o high until the end of the extraction", C_SCOPE);
+
+      -- A new arm and a new trigger before the end of the extraction
+      v_nb_arm  := nb_arm;
+      wait until falling_edge(trig_clk_i);
+      arm_i     <= '1';
+      set_pulse(probe_cnt, 3);
+      wait until falling_edge(trig_clk_i);
+      arm_i     <= '0';
+      wait for 5*C_TRIG_PERIOD;
+      check_value(nb_arm, v_nb_arm, ERROR, "Stall : arm_i ignored during the extraction", C_SCOPE);
+      pulses    <= C_NO_PULSE;
+
+      receive_capture(v_first, v_trigger, "Stall");
+      wait_idle      ("Stall");
+      wait for 2*DEPTH*C_TRIG_PERIOD;
+      check_value (nb_arm         , v_nb_arm, ERROR, "Stall : no capture after the extraction", C_SCOPE);
+      check_stable(m_axis_tvalid_o, 2*DEPTH*C_TRIG_PERIOD, ERROR, "Stall : m_axis_tvalid_o stays low", C_SCOPE);
+
+    ------------------------------------------------
+    elsif TEST = "continuous"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Continuous captures : arm_i held high", C_SCOPE);
+
+      -- 4 trigger pulses, C_GAP samples apart : a capture per pulse, the next
+      -- capture starts at the end of the extraction of the previous one
+      wait until falling_edge(trig_clk_i);
+      v_nb_arm  := nb_arm;
+      v_pulses  := C_NO_PULSE;
+      for i in 0 to 3 loop
+        v_pulses(i) := (probe_cnt + PRE_TRIGGER + 5 + i*C_GAP, 1);
+      end loop;
+      pulses    <= v_pulses;
+      arm_i     <= '1';
+
+      for i in 1 to 3 loop
+        -- Capture i started
+        if nb_arm /= v_nb_arm + i
+        then
+          wait until nb_arm = v_nb_arm + i for C_TIMEOUT;
+        end if;
+        check_value(nb_arm, v_nb_arm + i, ERROR, "Continuous : capture " & to_string(i) & " started", C_SCOPE);
+        v_first   := arm_sample;
+        wait_trigger(v_trigger, "Continuous " & to_string(i));
+        check_value (v_trigger, first_trigger(pulses, v_first + PRE_TRIGGER), ERROR, "Continuous : first pulse after the pre-trigger samples", C_SCOPE);
+
+        -- No capture after the last one
+        if i = 3
+        then
+          wait until falling_edge(trig_clk_i);
+          arm_i   <= '0';
+        end if;
+
+        receive_capture(v_first, v_trigger, "Continuous " & to_string(i));
+      end loop;
+      wait_idle("Continuous");
+      wait for 2*DEPTH*C_TRIG_PERIOD;
+      check_value(nb_arm, v_nb_arm + 3, ERROR, "Continuous : no capture after arm_i low", C_SCOPE);
+      pulses    <= C_NO_PULSE;
+
+    ------------------------------------------------
+    elsif TEST = "sparse"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Sparse probes : a change every 4 samples on average", C_SCOPE);
+
+      -- Level trigger from a late sample : the trigger sample is often a
+      -- sample without change (stored because it is the trigger sample)
+      probe_mode <= MODE_SPARSE;
+      wait for 4*C_TRIG_PERIOD;
+      for i in 1 to 2 loop
+        arm_capture(v_first, "Sparse " & to_string(i));
+        set_pulse(v_first + 3*PRE_TRIGGER + 5*i, 64*DEPTH);
+        wait_trigger   (v_trigger, "Sparse " & to_string(i));
+        receive_capture(v_first, v_trigger, "Sparse " & to_string(i));
+        wait_idle      ("Sparse " & to_string(i));
+        pulses    <= C_NO_PULSE;
+      end loop;
+
+    ------------------------------------------------
+    elsif TEST = "frozen"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Frozen probes : samples stored at the timestamp 0 only", C_SCOPE);
+
+      if not C_FROZEN_TEST
+      then
+        alert(TB_ERROR, "Test frozen not applicable : 2**TIMESTAMP_WIDTH too large with CHANGE_ONLY", C_SCOPE);
+      end if;
+
       probe_mode <= MODE_FROZEN;
       wait for 4*C_TRIG_PERIOD;
       arm_capture(v_first, "Frozen");
@@ -774,59 +823,81 @@ begin
       receive_capture(v_first, v_trigger, "Frozen");
       wait_idle      ("Frozen");
       pulses    <= C_NO_PULSE;
+      probe_mode <= MODE_COUNT;
+
+    ------------------------------------------------
+    elsif TEST = "first_sample"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "First sample of the capture equal to the last stored sample", C_SCOPE);
+
+      if PRE_TRIGGER = 0
+      then
+        alert(TB_ERROR, "Test first_sample not applicable : no pre-trigger sample, the first sample is not in the capture", C_SCOPE);
+      end if;
+
+      -- A first capture gives the last stored sample
+      arm_capture(v_first, "Previous capture");
+      set_pulse(v_first + PRE_TRIGGER + 3, 1);
+      wait_trigger   (v_trigger, "Previous capture");
+      receive_capture(v_first, v_trigger, "Previous capture");
+      wait_idle      ("Previous capture");
+      pulses      <= C_NO_PULSE;
+
+      -- The first sample is stored (first sample of the capture), even without
+      -- change. Level trigger from the third sample : the trigger sample is the
+      -- first one after the pre-trigger samples, so the first sample is in the
+      -- capture
+      probe_force <= v_last_probe;
+      probe_mode  <= MODE_FORCE;
+      wait for 4*C_TRIG_PERIOD;
+      arm_capture(v_first, "First sample");
+      probe_mode  <= MODE_SPARSE;
+      set_pulse(v_first + 2, 64*DEPTH);
+      wait_trigger   (v_trigger, "First sample");
+      receive_capture(v_first, v_trigger, "First sample");
+      wait_idle      ("First sample");
+      pulses      <= C_NO_PULSE;
+      probe_mode  <= MODE_COUNT;
+
+    ------------------------------------------------
+    elsif TEST = "async_reset"
+    ------------------------------------------------
+    then
+      log(ID_LOG_HDR, "Asynchronous reset during an extraction", C_SCOPE);
+
+      arm_capture(v_first, "Reset");
+      set_pulse(v_first + PRE_TRIGGER + 2, 1);
+      wait_trigger(v_trigger, "Reset");
+      await_value(m_axis_tvalid_o, '1', 0 ns, C_TIMEOUT, ERROR, "Reset : first beat presented", C_SCOPE);
+      pulses           <= C_NO_PULSE;
+
+      trig_arst_b_i    <= '0';
+      extract_arst_b_i <= '0';
+      wait for 1 ns;
+      check_value(armed_o        , '0', ERROR, "Reset : armed_o low"        , C_SCOPE);
+      check_value(triggered_o    , '0', ERROR, "Reset : triggered_o low"    , C_SCOPE);
+      check_value(m_axis_tvalid_o, '0', ERROR, "Reset : m_axis_tvalid_o low", C_SCOPE);
+      check_value(m_axis_tlast_o , '0', ERROR, "Reset : m_axis_tlast_o low" , C_SCOPE);
+      wait for 5*C_TRIG_PERIOD + 5*C_EXTRACT_PERIOD;
+      release_resets;
+      wait for 2*DEPTH*C_TRIG_PERIOD;
+      check_stable(m_axis_tvalid_o, 2*DEPTH*C_TRIG_PERIOD, ERROR, "Reset : the capture is lost", C_SCOPE);
+
+      -- New capture after the reset (new origin of the timestamp)
+      arm_capture(v_first, "After reset");
+      set_pulse(v_first + PRE_TRIGGER + 4, 1);
+      wait_trigger   (v_trigger, "After reset");
+      check_value    (v_trigger, v_first + PRE_TRIGGER + 4, ERROR, "After reset : trigger sample", C_SCOPE);
+      receive_capture(v_first, v_trigger, "After reset");
+      wait_idle      ("After reset");
+      pulses    <= C_NO_PULSE;
+
+    ------------------------------------------------
     else
-      log(ID_SEQUENCER, "Frozen : skipped, 2**TIMESTAMP_WIDTH too large", C_SCOPE);
+    ------------------------------------------------
+      alert(TB_FAILURE, "Unknown test " & TEST, C_SCOPE);
     end if;
-    probe_mode <= MODE_COUNT;
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "12. First sample of the capture equal to the last stored sample", C_SCOPE);
-    ------------------------------------------------
-    -- The first sample is stored (first sample of the capture), even without
-    -- change. Level trigger from the third sample : the trigger sample is the
-    -- first one after the pre-trigger samples, so the first sample is in the
-    -- capture
-    probe_force <= v_last_probe;
-    probe_mode  <= MODE_FORCE;
-    wait for 4*C_TRIG_PERIOD;
-    arm_capture(v_first, "First sample");
-    probe_mode  <= MODE_SPARSE;
-    set_pulse(v_first + 2, 64*DEPTH);
-    wait_trigger   (v_trigger, "First sample");
-    receive_capture(v_first, v_trigger, "First sample");
-    wait_idle      ("First sample");
-    pulses      <= C_NO_PULSE;
-    probe_mode  <= MODE_COUNT;
-
-    ------------------------------------------------
-    log(ID_LOG_HDR, "13. Asynchronous reset during an extraction", C_SCOPE);
-    ------------------------------------------------
-    arm_capture(v_first, "Reset");
-    set_pulse(v_first + PRE_TRIGGER + 2, 1);
-    wait_trigger(v_trigger, "Reset");
-    await_value(m_axis_tvalid_o, '1', 0 ns, C_TIMEOUT, ERROR, "Reset : first beat presented", C_SCOPE);
-    pulses           <= C_NO_PULSE;
-
-    trig_arst_b_i    <= '0';
-    extract_arst_b_i <= '0';
-    wait for 1 ns;
-    check_value(armed_o        , '0', ERROR, "Reset : armed_o low"        , C_SCOPE);
-    check_value(triggered_o    , '0', ERROR, "Reset : triggered_o low"    , C_SCOPE);
-    check_value(m_axis_tvalid_o, '0', ERROR, "Reset : m_axis_tvalid_o low", C_SCOPE);
-    check_value(m_axis_tlast_o , '0', ERROR, "Reset : m_axis_tlast_o low" , C_SCOPE);
-    wait for 5*C_TRIG_PERIOD + 5*C_EXTRACT_PERIOD;
-    release_resets;
-    wait for 2*DEPTH*C_TRIG_PERIOD;
-    check_stable(m_axis_tvalid_o, 2*DEPTH*C_TRIG_PERIOD, ERROR, "Reset : the capture is lost", C_SCOPE);
-
-    -- New capture after the reset (new origin of the timestamp)
-    arm_capture(v_first, "After reset");
-    set_pulse(v_first + PRE_TRIGGER + 4, 1);
-    wait_trigger   (v_trigger, "After reset");
-    check_value    (v_trigger, v_first + PRE_TRIGGER + 4, ERROR, "After reset : trigger sample", C_SCOPE);
-    receive_capture(v_first, v_trigger, "After reset");
-    wait_idle      ("After reset");
-    pulses    <= C_NO_PULSE;
 
     ------------------------------------------------
     -- End of simulation

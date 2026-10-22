@@ -1,16 +1,72 @@
-default                         : Default Target
-lint_ghdl                       : Lint with GHDL (-Wall analysis and elaboration of hwla_synth_top)
-lint_ghdl_synth_all_samples     : Synthesis check of hwla_synth_top, no timestamp, every sample stored
-lint_ghdl_synth_default         : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
-lint_ghdl_synth_min             : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples, no timestamp)
-lint_ghdl_synth_pre_trigger_0   : Synthesis check of hwla_synth_top, no pre-trigger sample
-lint_ghdl_synth_pre_trigger_max : Synthesis check of hwla_synth_top, no post-trigger sample
-lint_ghdl_synth_uart            : Synthesis check of hwla_synth_top, 8-bit tdata (3 beats per sample, for uart_tx_axis)
-sim_all_samples                 : Simulation of hwla, 8 probes, 32 samples, 16 pre-trigger samples, 16-bit timestamp, every sample stored, 32-bit tdata, extraction clock faster
-sim_basic                       : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, 16-bit timestamp, changes only, extraction clock slower
-sim_pre_trigger_0               : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, 8-bit timestamp, changes only, 2 beats of 8 bits per sample, extraction clock faster
-sim_pre_trigger_max             : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, 4-bit timestamp (wraps), changes only, 3 beats of 16 bits per sample, extraction clock much slower
-sim_same_period                 : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, no timestamp, every sample stored (as 1.0.0), same period for both clocks
-sim_uart                        : Simulation of hwla connected to uart_tx_axis (UVVM UART BFM), 32 samples, 8 pre-trigger samples, 16-bit timestamp, changes only, VCD rebuilt from the UART bytes by tools/hwla2vcd.py and checked
-sim_uart_no_timestamp           : Simulation of hwla connected to uart_tx_axis, 64 samples, 16 pre-trigger samples, no timestamp, every sample stored (1 byte per sample), VCD rebuilt and checked
+default                                 : Default Target
+lint_ghdl                               : Lint with GHDL (-Wall analysis and elaboration of hwla_synth_top)
+lint_ghdl_synth_all_samples             : Synthesis check of hwla_synth_top, no timestamp, every sample stored
+lint_ghdl_synth_default                 : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
+lint_ghdl_synth_min                     : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples, no timestamp)
+lint_ghdl_synth_pre_trigger_0           : Synthesis check of hwla_synth_top, no pre-trigger sample
+lint_ghdl_synth_pre_trigger_max         : Synthesis check of hwla_synth_top, no post-trigger sample
+lint_ghdl_synth_uart                    : Synthesis check of hwla_synth_top, 8-bit tdata (3 beats per sample, for uart_tx_axis)
+sim_all_samples_async_reset             : Simulation of hwla (all_samples), asynchronous reset during an extraction
+sim_all_samples_back_pressure           : Simulation of hwla (all_samples), random back pressure
+sim_all_samples_capture                 : Simulation of hwla (all_samples), single capture
+sim_all_samples_continuous              : Simulation of hwla (all_samples), continuous captures (arm_i held high)
+sim_all_samples_first_sample            : Simulation of hwla (all_samples), first sample equal to the last stored sample
+sim_all_samples_frozen                  : Simulation of hwla (all_samples), frozen probes, timestamp wrap
+sim_all_samples_late_trigger            : Simulation of hwla (all_samples), trigger after 3 turns of the circular buffer
+sim_all_samples_level_trigger           : Simulation of hwla (all_samples), level trigger already high at the arm
+sim_all_samples_not_armed               : Simulation of hwla (all_samples), trigger ignored while not armed
+sim_all_samples_pre_trigger_ignored     : Simulation of hwla (all_samples), triggers ignored during the pre-trigger samples
+sim_all_samples_reset_values            : Simulation of hwla (all_samples), outputs after the reset
+sim_all_samples_sparse                  : Simulation of hwla (all_samples), sparse probes
+sim_all_samples_stall                   : Simulation of hwla (all_samples), long stall, arm_i and trigger ignored during the extraction
+sim_basic_async_reset                   : Simulation of hwla (basic), asynchronous reset during an extraction
+sim_basic_back_pressure                 : Simulation of hwla (basic), random back pressure
+sim_basic_capture                       : Simulation of hwla (basic), single capture
+sim_basic_continuous                    : Simulation of hwla (basic), continuous captures (arm_i held high)
+sim_basic_first_sample                  : Simulation of hwla (basic), first sample equal to the last stored sample
+sim_basic_late_trigger                  : Simulation of hwla (basic), trigger after 3 turns of the circular buffer
+sim_basic_level_trigger                 : Simulation of hwla (basic), level trigger already high at the arm
+sim_basic_not_armed                     : Simulation of hwla (basic), trigger ignored while not armed
+sim_basic_pre_trigger_ignored           : Simulation of hwla (basic), triggers ignored during the pre-trigger samples
+sim_basic_reset_values                  : Simulation of hwla (basic) with the UVVM AXI-Stream BFM, outputs after the reset
+sim_basic_sparse                        : Simulation of hwla (basic), sparse probes
+sim_basic_stall                         : Simulation of hwla (basic), long stall, arm_i and trigger ignored during the extraction
+sim_pre_trigger_0_async_reset           : Simulation of hwla (pre_trigger_0), asynchronous reset during an extraction
+sim_pre_trigger_0_back_pressure         : Simulation of hwla (pre_trigger_0), random back pressure
+sim_pre_trigger_0_capture               : Simulation of hwla (pre_trigger_0), single capture
+sim_pre_trigger_0_continuous            : Simulation of hwla (pre_trigger_0), continuous captures (arm_i held high)
+sim_pre_trigger_0_late_trigger          : Simulation of hwla (pre_trigger_0), trigger after 3 turns of the circular buffer
+sim_pre_trigger_0_level_trigger         : Simulation of hwla (pre_trigger_0), level trigger already high at the arm
+sim_pre_trigger_0_not_armed             : Simulation of hwla (pre_trigger_0), trigger ignored while not armed
+sim_pre_trigger_0_reset_values          : Simulation of hwla (pre_trigger_0), outputs after the reset
+sim_pre_trigger_0_sparse                : Simulation of hwla (pre_trigger_0), sparse probes
+sim_pre_trigger_0_stall                 : Simulation of hwla (pre_trigger_0), long stall, arm_i and trigger ignored during the extraction
+sim_pre_trigger_max_async_reset         : Simulation of hwla (pre_trigger_max), asynchronous reset during an extraction
+sim_pre_trigger_max_back_pressure       : Simulation of hwla (pre_trigger_max), random back pressure
+sim_pre_trigger_max_capture             : Simulation of hwla (pre_trigger_max), single capture
+sim_pre_trigger_max_continuous          : Simulation of hwla (pre_trigger_max), continuous captures (arm_i held high)
+sim_pre_trigger_max_first_sample        : Simulation of hwla (pre_trigger_max), first sample equal to the last stored sample
+sim_pre_trigger_max_frozen              : Simulation of hwla (pre_trigger_max), frozen probes, timestamp wrap
+sim_pre_trigger_max_late_trigger        : Simulation of hwla (pre_trigger_max), trigger after 3 turns of the circular buffer
+sim_pre_trigger_max_level_trigger       : Simulation of hwla (pre_trigger_max), level trigger already high at the arm
+sim_pre_trigger_max_not_armed           : Simulation of hwla (pre_trigger_max), trigger ignored while not armed
+sim_pre_trigger_max_pre_trigger_ignored : Simulation of hwla (pre_trigger_max), triggers ignored during the pre-trigger samples
+sim_pre_trigger_max_reset_values        : Simulation of hwla (pre_trigger_max), outputs after the reset
+sim_pre_trigger_max_sparse              : Simulation of hwla (pre_trigger_max), sparse probes
+sim_pre_trigger_max_stall               : Simulation of hwla (pre_trigger_max), long stall, arm_i and trigger ignored during the extraction
+sim_same_period_async_reset             : Simulation of hwla (same_period), asynchronous reset during an extraction
+sim_same_period_back_pressure           : Simulation of hwla (same_period), random back pressure
+sim_same_period_capture                 : Simulation of hwla (same_period), single capture
+sim_same_period_continuous              : Simulation of hwla (same_period), continuous captures (arm_i held high)
+sim_same_period_first_sample            : Simulation of hwla (same_period), first sample equal to the last stored sample
+sim_same_period_frozen                  : Simulation of hwla (same_period), frozen probes, timestamp wrap
+sim_same_period_late_trigger            : Simulation of hwla (same_period), trigger after 3 turns of the circular buffer
+sim_same_period_level_trigger           : Simulation of hwla (same_period), level trigger already high at the arm
+sim_same_period_not_armed               : Simulation of hwla (same_period), trigger ignored while not armed
+sim_same_period_pre_trigger_ignored     : Simulation of hwla (same_period), triggers ignored during the pre-trigger samples
+sim_same_period_reset_values            : Simulation of hwla (same_period), outputs after the reset
+sim_same_period_sparse                  : Simulation of hwla (same_period), sparse probes
+sim_same_period_stall                   : Simulation of hwla (same_period), long stall, arm_i and trigger ignored during the extraction
+sim_uart                                : Simulation of hwla connected to uart_tx_axis (UVVM UART BFM), 32 samples, 8 pre-trigger samples, 16-bit timestamp, changes only, VCD rebuilt from the UART bytes by tools/hwla2vcd.py and checked
+sim_uart_no_timestamp                   : Simulation of hwla connected to uart_tx_axis, 64 samples, 16 pre-trigger samples, no timestamp, every sample stored (1 byte per sample), VCD rebuilt and checked
 
