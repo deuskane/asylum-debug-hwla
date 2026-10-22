@@ -1,0 +1,53 @@
+CAPI=2:
+
+#-----------------------------------------------------------------------------
+# Title      : HWLA Core file
+# Project    : Asylum
+#-----------------------------------------------------------------------------
+# File       : HWLA.core
+# Author     : mrosiere
+#-----------------------------------------------------------------------------
+# Description: Hardware Logic Analyzer : capture in a trigger clock domain,
+#              extraction on an AXI-Stream master in another clock domain
+#-----------------------------------------------------------------------------
+# Copyright (c) 2026
+#-----------------------------------------------------------------------------
+# Revisions  :
+# Date        Version  Author   Description
+# 2026-10-22  1.0.0    mrosiere First Release
+#-----------------------------------------------------------------------------
+
+name        : asylum:debug:HWLA:1.0.0
+description : Hardware Logic Analyzer
+
+#=========================================
+filesets:
+#=========================================
+
+  #---------------------------------------
+  hdl:
+  #---------------------------------------
+    files        :
+      - hdl/hwla_pkg.vhd
+      - hdl/hwla_ram.vhd
+      - hdl/hwla_trigger.vhd
+      - hdl/hwla_extract.vhd
+      - hdl/hwla.vhd
+    file_type    : vhdlSource
+    logical_name : asylum
+    depend       :
+      - asylum:utils:pkg
+      - asylum:target:techmap
+
+#=========================================
+targets:
+#=========================================
+
+  #---------------------------------------
+  default: &default
+  #---------------------------------------
+    description     : Default Target
+    filesets        :
+      - hdl
+    toplevel        : hwla
+    default_tool    : ghdl

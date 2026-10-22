@@ -28,6 +28,32 @@ package hwla_pkg is
   function hwla_tdata_width (nb_probe : positive) return positive;
 
 -- [COMPONENT_INSERT][BEGIN]
+component hwla is
+  generic (
+    NB_PROBE         : positive := 8;                                        -- Number of probes (width of a sample)
+    DEPTH            : positive := 256;                                      -- Number of samples of a capture (power of 2)
+    PRE_TRIGGER      : natural  := 128                                       -- Number of samples before the trigger sample (0 to DEPTH-1)
+    );
+  port (
+    -- Trigger domain
+    trig_clk_i       : in  std_logic;
+    trig_arst_b_i    : in  std_logic;                                        -- Asynchronous reset, active low
+    arm_i            : in  std_logic;                                        -- 1 : start a capture (when idle). Tied to 1 : a new capture after each extraction
+    trigger_i        : in  std_logic;                                        -- 1 : trigger condition
+    probe_i          : in  std_logic_vector(NB_PROBE-1 downto 0);            -- Probed signals
+    armed_o          : out std_logic;                                        -- 1 : capture started, trigger not yet seen
+    triggered_o      : out std_logic;                                        -- 1 : trigger seen, capture not yet extracted
+
+    -- Extraction domain
+    extract_clk_i    : in  std_logic;
+    extract_arst_b_i : in  std_logic;                                        -- Asynchronous reset, active low
+    m_axis_tdata_o   : out std_logic_vector(hwla_tdata_width(NB_PROBE)-1 downto 0); -- Sample on the NB_PROBE LSB, other bits 0
+    m_axis_tvalid_o  : out std_logic;
+    m_axis_tready_i  : in  std_logic;
+    m_axis_tlast_o   : out std_logic                                         -- 1 : last sample of the capture
+    );
+end component hwla;
+
 component hwla_ram is
   generic (
     WIDTH        : positive := 8;                                  -- Width of a word
