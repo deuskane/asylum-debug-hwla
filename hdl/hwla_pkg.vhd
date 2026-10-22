@@ -48,6 +48,38 @@ component hwla_ram is
     );
 end component hwla_ram;
 
+component hwla_trigger is
+  generic (
+    NB_PROBE     : positive := 8;                                  -- Number of probes (width of a sample)
+    DEPTH        : positive := 256;                                -- Number of samples of a capture (power of 2)
+    PRE_TRIGGER  : natural  := 128                                 -- Number of samples before the trigger sample (0 to DEPTH-1)
+    );
+  port (
+    -- Clock & Reset (trigger domain)
+    clk_i        : in  std_logic;
+    arst_b_i     : in  std_logic;                                  -- Asynchronous reset, active low
+
+    -- Control and probes
+    arm_i        : in  std_logic;                                  -- 1 : start a capture (when idle)
+    trigger_i    : in  std_logic;                                  -- 1 : trigger condition
+    probe_i      : in  std_logic_vector(NB_PROBE-1 downto 0);      -- Probed signals
+
+    -- Status
+    armed_o      : out std_logic;                                  -- 1 : capture started, trigger not yet seen
+    triggered_o  : out std_logic;                                  -- 1 : trigger seen, capture not yet extracted
+
+    -- RAM write port
+    ram_we_o     : out std_logic;
+    ram_waddr_o  : out std_logic_vector(log2(DEPTH)-1 downto 0);
+    ram_wdata_o  : out std_logic_vector(NB_PROBE   -1 downto 0);
+
+    -- Handshake with the extraction domain
+    dump_req_o   : out std_logic;                                  -- 1 : capture done, to be extracted
+    dump_addr_o  : out std_logic_vector(log2(DEPTH)-1 downto 0);   -- Address of the oldest sample, stable while dump_req_o = 1
+    dump_ack_i   : in  std_logic                                   -- 1 : capture extracted (asynchronous, extraction domain)
+    );
+end component hwla_trigger;
+
 -- [COMPONENT_INSERT][END]
 
 end hwla_pkg;

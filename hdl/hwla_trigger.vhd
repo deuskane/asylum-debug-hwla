@@ -1,0 +1,259 @@
+-------------------------------------------------------------------------------
+-- Title      : hwla_trigger
+-- Project    : Asylum
+-------------------------------------------------------------------------------
+-- File       : hwla_trigger.vhd
+-- Author     : Mathieu Rosiere
+-- Company    :
+-- Created    : 2026-10-22
+-- Last update: 2026-10-22
+-- Platform   :
+-- Standard   : VHDL'93/02
+-------------------------------------------------------------------------------
+-- Description:
+-- Trigger part of the HWLA, in the trigger clock domain (clk_i). Records the
+-- probes in the RAM of the HWLA, around the trigger :
+-- * Input stage : probe_i and trigger_i are registered together, so a sample
+--   is the value of the probes and of the trigger at a rising edge of clk_i.
+-- * A capture is DEPTH consecutive samples : PRE_TRIGGER samples, the
+--   trigger sample, then POST_TRIGGER = DEPTH-1-PRE_TRIGGER samples.
+-- * IDLE     : nothing is recorded, a capture starts when arm_i = 1. The
+--              first sample of the capture is the sample of this clock cycle.
+--   FILL     : record the PRE_TRIGGER first samples, the trigger is ignored
+--              (skipped when PRE_TRIGGER = 0).
+--   ARMED    : record the samples (circular buffer) and wait for the trigger :
+--              the first sample with trigger = 1 is the trigger sample.
+--   POST     : record the POST_TRIGGER samples after the trigger sample
+--              (skipped when POST_TRIGGER = 0).
+--   DUMP     : capture done, dump_req_o = 1 until the extraction domain has
+--              read the whole capture (dump_ack_i = 1).
+--   DUMP_END : wait for the end of the handshake (dump_ack_i = 0), then IDLE.
+--   arm_i is only used in IDLE, the trigger only in ARMED.
+-- * The write address wraps around the RAM : at the end of a capture, it is
+--   the address of the oldest sample of the capture (dump_addr_o), stable
+--   while dump_req_o = 1.
+-- * Handshake with the extraction domain (4 phases, req/ack) : dump_req_o is
+--   a register, dump_ack_i is synchronized with sync2dffrn. dump_addr_o is
+--   quasi-static : it is stable from the rise of dump_req_o to the fall of
+--   dump_ack_i.
+-------------------------------------------------------------------------------
+-- Copyright (c) 2026
+-------------------------------------------------------------------------------
+-- Revisions  :
+-- Date        Version  Author   Description
+-- 2026-10-22  1.0      mrosiere Created
+-------------------------------------------------------------------------------
+
+library IEEE;
+use     IEEE.STD_LOGIC_1164.ALL;
+use     IEEE.NUMERIC_STD.ALL;
+
+library asylum;
+use     asylum.math_pkg.ALL;
+use     asylum.techmap_pkg.ALL;
+
+entity hwla_trigger is
+  generic (
+    NB_PROBE     : positive := 8;                                  -- Number of probes (width of a sample)
+    DEPTH        : positive := 256;                                -- Number of samples of a capture (power of 2)
+    PRE_TRIGGER  : natural  := 128                                 -- Number of samples before the trigger sample (0 to DEPTH-1)
+    );
+  port (
+    -- Clock & Reset (trigger domain)
+    clk_i        : in  std_logic;
+    arst_b_i     : in  std_logic;                                  -- Asynchronous reset, active low
+
+    -- Control and probes
+    arm_i        : in  std_logic;                                  -- 1 : start a capture (when idle)
+    trigger_i    : in  std_logic;                                  -- 1 : trigger condition
+    probe_i      : in  std_logic_vector(NB_PROBE-1 downto 0);      -- Probed signals
+
+    -- Status
+    armed_o      : out std_logic;                                  -- 1 : capture started, trigger not yet seen
+    triggered_o  : out std_logic;                                  -- 1 : trigger seen, capture not yet extracted
+
+    -- RAM write port
+    ram_we_o     : out std_logic;
+    ram_waddr_o  : out std_logic_vector(log2(DEPTH)-1 downto 0);
+    ram_wdata_o  : out std_logic_vector(NB_PROBE   -1 downto 0);
+
+    -- Handshake with the extraction domain
+    dump_req_o   : out std_logic;                                  -- 1 : capture done, to be extracted
+    dump_addr_o  : out std_logic_vector(log2(DEPTH)-1 downto 0);   -- Address of the oldest sample, stable while dump_req_o = 1
+    dump_ack_i   : in  std_logic                                   -- 1 : capture extracted (asynchronous, extraction domain)
+    );
+end entity hwla_trigger;
+
+architecture rtl of hwla_trigger is
+
+  constant ADDR_WIDTH             : natural := log2(DEPTH);
+  constant POST_TRIGGER           : integer := DEPTH-1-PRE_TRIGGER; -- Number of samples after the trigger sample
+
+  type     state_t is (IDLE, FILL, ARMED, POST, DUMP, DUMP_END);
+  signal   state_r                : state_t;
+
+  -- Input stage
+  signal   probe_r                : std_logic_vector(NB_PROBE-1 downto 0);
+  signal   trigger_r              : std_logic;
+
+  -- Recording
+  signal   we                     : std_logic;
+  signal   waddr_r                : unsigned(ADDR_WIDTH-1 downto 0);
+  signal   cnt_r                  : unsigned(ADDR_WIDTH-1 downto 0);
+
+  -- Handshake
+  signal   dump_req_r             : std_logic;
+  signal   dump_ack_sync          : std_logic;
+
+begin  -- architecture rtl
+
+  -----------------------------------------------------------------------------
+  -- Input stage
+  -----------------------------------------------------------------------------
+  -- The probes and the trigger have the same latency : the trigger flag of a
+  -- sample is always the one of its probes
+  process(clk_i,arst_b_i)
+  begin
+    if arst_b_i = '0'
+    then
+      probe_r   <= (others => '0');
+      trigger_r <= '0';
+    elsif rising_edge(clk_i)
+    then
+      probe_r   <= probe_i;
+      trigger_r <= trigger_i;
+    end if;
+  end process;
+
+  -----------------------------------------------------------------------------
+  -- Synchronization of the acknowledge from the extraction domain
+  -----------------------------------------------------------------------------
+  ins_dump_ack_sync : sync2dffrn
+    port map
+    ( clk_i    => clk_i
+     ,arst_b_i => arst_b_i
+     ,d_i      => dump_ack_i
+     ,q_o      => dump_ack_sync
+    );
+
+  -----------------------------------------------------------------------------
+  -- Capture FSM
+  -----------------------------------------------------------------------------
+  -- The sample of the input stage is written in the RAM in FILL, ARMED and POST
+  we                   <= '1' when state_r = FILL  or
+                                   state_r = ARMED or
+                                   state_r = POST  else
+                          '0';
+
+  process(clk_i,arst_b_i)
+  begin
+    if arst_b_i = '0'
+    then
+      state_r    <= IDLE;
+      waddr_r    <= (others => '0');
+      cnt_r      <= (others => '0');
+      dump_req_r <= '0';
+    elsif rising_edge(clk_i)
+    then
+      -- Write address : next address after each recorded sample, wraps
+      -- around the RAM (DEPTH is a power of 2)
+      if we = '1'
+      then
+        waddr_r <= waddr_r + 1;
+      end if;
+
+      case state_r is
+        when IDLE =>
+          cnt_r <= (others => '0');
+
+          -- Start a capture : the sample of this clock cycle (in the input
+          -- stage at the next clock cycle) is the first one
+          if arm_i = '1'
+          then
+            if PRE_TRIGGER = 0
+            then
+              state_r <= ARMED;
+            else
+              state_r <= FILL;
+            end if;
+          end if;
+
+        when FILL =>
+          cnt_r <= cnt_r + 1;
+
+          -- Last pre-trigger sample : the next one can be the trigger sample
+          if to_integer(cnt_r) = PRE_TRIGGER-1
+          then
+            cnt_r   <= (others => '0');
+            state_r <= ARMED;
+          end if;
+
+        when ARMED =>
+          -- The sample written in this clock cycle is the trigger sample.
+          -- The PRE_TRIGGER previous samples are still in the RAM.
+          if trigger_r = '1'
+          then
+            if POST_TRIGGER = 0
+            then
+              dump_req_r <= '1';
+              state_r    <= DUMP;
+            else
+              state_r    <= POST;
+            end if;
+          end if;
+
+        when POST =>
+          cnt_r <= cnt_r + 1;
+
+          -- Last post-trigger sample : end of the capture
+          if to_integer(cnt_r) = POST_TRIGGER-1
+          then
+            dump_req_r <= '1';
+            state_r    <= DUMP;
+          end if;
+
+        when DUMP =>
+          -- The whole capture is extracted
+          if dump_ack_sync = '1'
+          then
+            dump_req_r <= '0';
+            state_r    <= DUMP_END;
+          end if;
+
+        when DUMP_END =>
+          -- End of the handshake : a new request can be sent
+          if dump_ack_sync = '0'
+          then
+            state_r    <= IDLE;
+          end if;
+      end case;
+    end if;
+  end process;
+
+  -----------------------------------------------------------------------------
+  -- Outputs
+  -----------------------------------------------------------------------------
+  ram_we_o             <= we;
+  ram_waddr_o          <= std_logic_vector(waddr_r);
+  ram_wdata_o          <= probe_r;
+
+  -- After the last sample of the capture, the write address is the address of
+  -- the oldest sample. It does not change until the next capture.
+  dump_req_o           <= dump_req_r;
+  dump_addr_o          <= std_logic_vector(waddr_r);
+
+  armed_o              <= '1' when state_r = FILL  or
+                                   state_r = ARMED else
+                          '0';
+  triggered_o          <= '1' when state_r = POST  or
+                                   state_r = DUMP  or
+                                   state_r = DUMP_END else
+                          '0';
+
+-- pragma translate_off
+  assert PRE_TRIGGER <= DEPTH-1
+    report "hwla_trigger : PRE_TRIGGER (" & integer'image(PRE_TRIGGER) & ") must be lower than DEPTH (" & integer'image(DEPTH) & ")"
+    severity failure;
+-- pragma translate_on
+
+end architecture rtl;
