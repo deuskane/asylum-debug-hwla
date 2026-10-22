@@ -24,10 +24,18 @@
 --                sim/uart/check_vcd.py) : "s <sample> <probes>" for each
 --                change of the probes, "t <sample>" for the trigger sample of
 --                each capture.
+--              * FILENAME_ARGS_VCD, FILENAME_ARGS_CHECK : arguments of
+--                hwla2vcd.py and check_vcd.py (one per line, --args-file)
+--                from the generics : the post_run hooks are the same for
+--                every configuration.
+--              Without timestamp (TIMESTAMP_WIDTH = 0), every sample must be
+--              stored (CHANGE_ONLY = false) to rebuild the time.
 -------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 2026-10-22  1.0      mrosiere Created
+-- 2026-10-22  1.1      mrosiere CHANGE_ONLY generic, arguments of the
+--                               post_run hooks written from the generics
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -51,7 +59,8 @@ entity tb_hwla_uart is
   generic (
     DEPTH              : positive := 32;   -- Number of stored samples of a capture
     PRE_TRIGGER        : natural  := 8;    -- Number of stored samples before the trigger sample
-    TIMESTAMP_WIDTH    : natural  := 16;   -- Width of the timestamp
+    TIMESTAMP_WIDTH    : natural  := 16;   -- Width of the timestamp (0 : no timestamp, CHANGE_ONLY must be false)
+    CHANGE_ONLY        : boolean  := true; -- true : store a sample only if the probes changed
     NB_CAPTURE         : positive := 2;    -- Number of captures sent on the UART
     TRIG_CLK_PERIOD    : positive := 10;   -- Period of the trigger clock (ns, even)
     EXTRACT_CLK_PERIOD : positive := 20;   -- Period of the extraction (UART) clock (ns, even)
@@ -72,6 +81,9 @@ architecture sim of tb_hwla_uart is
 
   constant FILENAME_UART      : string   := "hwla_uart.hex";
   constant FILENAME_REF       : string   := "hwla_uart_ref.txt";
+  constant FILENAME_VCD       : string   := "hwla_uart";      -- hwla2vcd.py : hwla_uart.vcd, or hwla_uart_<n>.vcd per capture
+  constant FILENAME_ARGS_VCD  : string   := "hwla2vcd.args";
+  constant FILENAME_ARGS_CHECK: string   := "check_vcd.args";
 
   type     byte_array_t is array (0 to C_NB_BYTE-1) of std_logic_vector(7 downto 0);
 
@@ -136,7 +148,7 @@ begin
      ,DEPTH            => DEPTH
      ,PRE_TRIGGER      => PRE_TRIGGER
      ,TIMESTAMP_WIDTH  => TIMESTAMP_WIDTH
-     ,CHANGE_ONLY      => true
+     ,CHANGE_ONLY      => CHANGE_ONLY
      ,TDATA_WIDTH      => 8
     )
     port map (
@@ -301,8 +313,48 @@ begin
   -- Sequencer
   -----------------------------------------------------------------------------
   p_main : process
+    file     f_args   : text;
+
+    -- One argument per line (--args-file of hwla2vcd.py and check_vcd.py)
+    procedure write_arg(file f : text; arg : string) is
+      variable v_arg : line;
+    begin
+      write(v_arg, arg);
+      writeline(f, v_arg);
+    end procedure;
+
   begin
     disable_log_msg(ID_BFM);  -- One message per UART byte
+
+    if TIMESTAMP_WIDTH = 0 and CHANGE_ONLY
+    then
+      alert(TB_FAILURE, "Without timestamp, CHANGE_ONLY must be false to rebuild the time of the samples", C_SCOPE);
+    end if;
+
+    -- Arguments of hwla2vcd.py : configuration of the HWLA, period of the
+    -- trigger clock
+    file_open(f_args, FILENAME_ARGS_VCD, write_mode);
+    write_arg(f_args, "--nb-probe"       ); write_arg(f_args, to_string(C_NB_PROBE));
+    write_arg(f_args, "--depth"          ); write_arg(f_args, to_string(DEPTH));
+    write_arg(f_args, "--pre-trigger"    ); write_arg(f_args, to_string(PRE_TRIGGER));
+    write_arg(f_args, "--timestamp-width"); write_arg(f_args, to_string(TIMESTAMP_WIDTH));
+    write_arg(f_args, "--tdata-width"    ); write_arg(f_args, "8");
+    write_arg(f_args, "--period"         ); write_arg(f_args, to_string(TRIG_CLK_PERIOD));
+    file_close(f_args);
+
+    -- Arguments of check_vcd.py : reference, VCD files of hwla2vcd.py, period
+    file_open(f_args, FILENAME_ARGS_CHECK, write_mode);
+    write_arg(f_args, FILENAME_REF);
+    if NB_CAPTURE = 1
+    then
+      write_arg(f_args, FILENAME_VCD & ".vcd");
+    else
+      for i in 0 to NB_CAPTURE-1 loop
+        write_arg(f_args, FILENAME_VCD & "_" & to_string(i) & ".vcd");
+      end loop;
+    end if;
+    write_arg(f_args, "--period"); write_arg(f_args, to_string(TRIG_CLK_PERIOD));
+    file_close(f_args);
 
     trig_arst_b_i    <= '0';
     extract_arst_b_i <= '0';
@@ -313,6 +365,7 @@ begin
     extract_arst_b_i <= '1';
 
     log(ID_LOG_HDR, "HWLA on a UART : " & to_string(NB_CAPTURE) & " captures of " & to_string(DEPTH) & " samples, " &
+                    "TIMESTAMP_WIDTH " & to_string(TIMESTAMP_WIDTH) & ", CHANGE_ONLY " & to_string(CHANGE_ONLY) & ", " &
                     to_string(C_SAMPLE_BYTES) & " bytes per sample, UART bit " & to_string(C_BIT_TIME), C_SCOPE);
 
     -- Continuous captures, until the last trigger

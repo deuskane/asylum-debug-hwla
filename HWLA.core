@@ -18,6 +18,8 @@ CAPI=2:
 # 2026-10-22  2.0.0    mrosiere Timestamp (TIMESTAMP_WIDTH), store only the
 #                               changes (CHANGE_ONLY), sample in several
 #                               beats (TDATA_WIDTH)
+#                               sim_uart_no_timestamp, arguments of the
+#                               post_run hooks written by tb_hwla_uart
 #-----------------------------------------------------------------------------
 
 name        : asylum:debug:HWLA:2.0.0
@@ -251,16 +253,22 @@ targets:
       - EXTRACT_CLK_PERIOD=10
 
   #---------------------------------------
-  # HWLA on a UART : tb_hwla_uart, then the VCD rebuilt from the UART bytes
-  # by tools/hwla2vcd.py is checked against the probes of the testbench
+  # HWLA on a UART : tb_hwla_uart with the generics of the target, then the
+  # VCD rebuilt from the UART bytes by tools/hwla2vcd.py is checked against
+  # the probes of the testbench
   #---------------------------------------
-  sim_uart:
+  sim_uart: &sim_uart
     << : *default
-    description     : Simulation of hwla connected to uart_tx_axis (UVVM UART BFM), VCD rebuilt from the UART bytes by tools/hwla2vcd.py and checked
+    description     : Simulation of hwla connected to uart_tx_axis (UVVM UART BFM), 32 samples, 8 pre-trigger samples, 16-bit timestamp, changes only, VCD rebuilt from the UART bytes by tools/hwla2vcd.py and checked
     filesets_append :
       - sim_uart
     toplevel        : tb_hwla_uart
     default_tool    : ghdl
+    parameters      :
+      - DEPTH=32
+      - PRE_TRIGGER=8
+      - TIMESTAMP_WIDTH=16
+      - CHANGE_ONLY=true
     tools :
       ghdl :
         analyze_options :
@@ -273,20 +281,31 @@ targets:
     hooks :
       post_run : [hwla2vcd, check_vcd]
 
+  #---------------------------------------
+  sim_uart_no_timestamp:
+  #---------------------------------------
+    << : *sim_uart
+    description     : Simulation of hwla connected to uart_tx_axis, 64 samples, 16 pre-trigger samples, no timestamp, every sample stored (1 byte per sample), VCD rebuilt and checked
+    parameters      :
+      - DEPTH=64
+      - PRE_TRIGGER=16
+      - TIMESTAMP_WIDTH=0
+      - CHANGE_ONLY=false
+
 #=========================================
 scripts:
 #=========================================
 
   #---------------------------------------
-  # post_run hooks of sim_uart (cwd = work_root) : the arguments are the
-  # default generics of tb_hwla_uart (8 probes, DEPTH 32, PRE_TRIGGER 8,
-  # 16-bit timestamp, 8-bit tdata, 2 captures, trigger clock of 10 ns)
+  # post_run hooks of sim_uart* (cwd = work_root) : the configuration of
+  # the HWLA (hwla2vcd.args) and the list of the VCD files (check_vcd.args)
+  # are written by tb_hwla_uart from its generics
   #---------------------------------------
   hwla2vcd :
-    cmd : [python3, hwla2vcd.py, hwla_uart.hex, --format, hex, --nb-probe, "8", --depth, "32", --pre-trigger, "8", --timestamp-width, "16", --tdata-width, "8", --period, "10", --bus, probe, -o, hwla_uart.vcd]
+    cmd : [python3, hwla2vcd.py, hwla_uart.hex, --format, hex, --args-file, hwla2vcd.args, --bus, probe, -o, hwla_uart.vcd]
 
   check_vcd :
-    cmd : [python3, check_vcd.py, hwla_uart_ref.txt, hwla_uart_0.vcd, hwla_uart_1.vcd, --period, "10"]
+    cmd : [python3, check_vcd.py, --args-file, check_vcd.args]
 
   #---------------------------------------
   # pre_run hook of lint_ghdl_synth_* (cwd = work_root)

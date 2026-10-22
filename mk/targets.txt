@@ -11,5 +11,6 @@ sim_basic                       : Simulation of hwla with the UVVM AXI-Stream BF
 sim_pre_trigger_0               : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, 8-bit timestamp, changes only, 2 beats of 8 bits per sample, extraction clock faster
 sim_pre_trigger_max             : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, 4-bit timestamp (wraps), changes only, 3 beats of 16 bits per sample, extraction clock much slower
 sim_same_period                 : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, no timestamp, every sample stored (as 1.0.0), same period for both clocks
-sim_uart                        : Simulation of hwla connected to uart_tx_axis (UVVM UART BFM), VCD rebuilt from the UART bytes by tools/hwla2vcd.py and checked
+sim_uart                        : Simulation of hwla connected to uart_tx_axis (UVVM UART BFM), 32 samples, 8 pre-trigger samples, 16-bit timestamp, changes only, VCD rebuilt from the UART bytes by tools/hwla2vcd.py and checked
+sim_uart_no_timestamp           : Simulation of hwla connected to uart_tx_axis, 64 samples, 16 pre-trigger samples, no timestamp, every sample stored (1 byte per sample), VCD rebuilt and checked
 
