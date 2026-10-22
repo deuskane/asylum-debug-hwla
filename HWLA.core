@@ -39,6 +39,15 @@ filesets:
       - asylum:utils:pkg
       - asylum:target:techmap
 
+  #---------------------------------------
+  sim_basic:
+  #---------------------------------------
+    files        :
+      - sim/basic/tb_hwla.vhd
+    file_type    : vhdlSource-2008
+    depend       :
+      - bitvis:verification:uvvm
+
 #=========================================
 targets:
 #=========================================
@@ -51,3 +60,105 @@ targets:
       - hdl
     toplevel        : hwla
     default_tool    : ghdl
+
+  #---------------------------------------
+  # Simulation : tb_hwla with the generics of the target
+  #---------------------------------------
+  sim_basic: &sim_basic
+    << : *default
+    description     : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, extraction clock slower
+    filesets_append :
+      - sim_basic
+    toplevel        : tb_hwla
+    default_tool    : ghdl
+    parameters      :
+      - NB_PROBE=12
+      - DEPTH=32
+      - PRE_TRIGGER=10
+      - TRIG_CLK_PERIOD=10
+      - EXTRACT_CLK_PERIOD=18
+    tools :
+      ghdl :
+        analyze_options :
+          - "$(GHDL_ANALYZE_OPTION)"
+          - "-Wall"
+          - "-frelaxed"
+        run_options     :
+          - "$(GHDL_RUN_OPTION)"
+          - "--ieee-asserts=disable"
+
+  #---------------------------------------
+  sim_pre_trigger_0:
+  #---------------------------------------
+    << : *sim_basic
+    description     : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, extraction clock faster
+    parameters      :
+      - NB_PROBE=8
+      - DEPTH=16
+      - PRE_TRIGGER=0
+      - TRIG_CLK_PERIOD=26
+      - EXTRACT_CLK_PERIOD=8
+
+  #---------------------------------------
+  sim_pre_trigger_max:
+  #---------------------------------------
+    << : *sim_basic
+    description     : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, extraction clock much slower
+    parameters      :
+      - NB_PROBE=33
+      - DEPTH=64
+      - PRE_TRIGGER=63
+      - TRIG_CLK_PERIOD=6
+      - EXTRACT_CLK_PERIOD=34
+
+  #---------------------------------------
+  sim_same_period:
+  #---------------------------------------
+    << : *sim_basic
+    description     : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, same period for both clocks
+    parameters      :
+      - NB_PROBE=16
+      - DEPTH=128
+      - PRE_TRIGGER=64
+      - TRIG_CLK_PERIOD=10
+      - EXTRACT_CLK_PERIOD=10
+
+#=========================================
+parameters :
+#=========================================
+
+  #---------------------------------------
+  # Generics of hwla (lint_ghdl_synth_*) and of tb_hwla (sim_*)
+  #---------------------------------------
+  NB_PROBE :
+    description : Number of probes (width of a sample)
+    datatype    : int
+    default     : 8
+    paramtype   : generic
+
+  DEPTH :
+    description : Number of samples of a capture (power of 2)
+    datatype    : int
+    default     : 256
+    paramtype   : generic
+
+  PRE_TRIGGER :
+    description : Number of samples before the trigger sample (0 to DEPTH-1)
+    datatype    : int
+    default     : 128
+    paramtype   : generic
+
+  #---------------------------------------
+  # Generics of tb_hwla (sim_*)
+  #---------------------------------------
+  TRIG_CLK_PERIOD :
+    description : Period of the trigger clock (ns, even)
+    datatype    : int
+    default     : 10
+    paramtype   : generic
+
+  EXTRACT_CLK_PERIOD :
+    description : Period of the extraction clock (ns, even)
+    datatype    : int
+    default     : 18
+    paramtype   : generic

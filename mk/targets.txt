@@ -1,2 +1,6 @@
-default : Default Target
+default             : Default Target
+sim_basic           : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, extraction clock slower
+sim_pre_trigger_0   : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, extraction clock faster
+sim_pre_trigger_max : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, extraction clock much slower
+sim_same_period     : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, same period for both clocks
 
