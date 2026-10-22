@@ -14,6 +14,7 @@
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 2026-10-22  1.0      mrosiere Created
+-- 2026-10-22  2.0      mrosiere TIMESTAMP_WIDTH, CHANGE_ONLY, TDATA_WIDTH
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -25,7 +26,10 @@ entity hwla_synth_top is
   generic (
     NB_PROBE         : positive := 8;
     DEPTH            : positive := 256;
-    PRE_TRIGGER      : natural  := 128
+    PRE_TRIGGER      : natural  := 128;
+    TIMESTAMP_WIDTH  : natural  := 16;
+    CHANGE_ONLY      : boolean  := true;
+    TDATA_WIDTH      : natural  := 0
   );
   port (
     -- Trigger domain
@@ -40,7 +44,7 @@ entity hwla_synth_top is
     -- Extraction domain
     extract_clk_i    : in  std_logic;
     extract_arst_b_i : in  std_logic;
-    m_axis_tdata_o   : out std_logic_vector(hwla_tdata_width(NB_PROBE)-1 downto 0);
+    m_axis_tdata_o   : out std_logic_vector(hwla_tdata_width(hwla_sample_width(NB_PROBE,TIMESTAMP_WIDTH),TDATA_WIDTH)-1 downto 0);
     m_axis_tvalid_o  : out std_logic;
     m_axis_tready_i  : in  std_logic;
     m_axis_tlast_o   : out std_logic
@@ -54,7 +58,10 @@ begin
     generic map (
       NB_PROBE         => NB_PROBE,
       DEPTH            => DEPTH,
-      PRE_TRIGGER      => PRE_TRIGGER
+      PRE_TRIGGER      => PRE_TRIGGER,
+      TIMESTAMP_WIDTH  => TIMESTAMP_WIDTH,
+      CHANGE_ONLY      => CHANGE_ONLY,
+      TDATA_WIDTH      => TDATA_WIDTH
     )
     port map (
       trig_clk_i       => trig_clk_i,

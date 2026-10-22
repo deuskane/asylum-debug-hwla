@@ -1,11 +1,14 @@
 default                         : Default Target
 lint_ghdl                       : Lint with GHDL (-Wall analysis and elaboration of hwla_synth_top)
-lint_ghdl_synth_default         : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples)
-lint_ghdl_synth_min             : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples)
+lint_ghdl_synth_all_samples     : Synthesis check of hwla_synth_top, no timestamp, every sample stored
+lint_ghdl_synth_default         : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
+lint_ghdl_synth_min             : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples, no timestamp)
 lint_ghdl_synth_pre_trigger_0   : Synthesis check of hwla_synth_top, no pre-trigger sample
 lint_ghdl_synth_pre_trigger_max : Synthesis check of hwla_synth_top, no post-trigger sample
-sim_basic                       : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, extraction clock slower
-sim_pre_trigger_0               : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, extraction clock faster
-sim_pre_trigger_max             : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, extraction clock much slower
-sim_same_period                 : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, same period for both clocks
+lint_ghdl_synth_uart            : Synthesis check of hwla_synth_top, 8-bit tdata (3 beats per sample, for uart_tx_axis)
+sim_all_samples                 : Simulation of hwla, 8 probes, 32 samples, 16 pre-trigger samples, 16-bit timestamp, every sample stored, 32-bit tdata, extraction clock faster
+sim_basic                       : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, 16-bit timestamp, changes only, extraction clock slower
+sim_pre_trigger_0               : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, 8-bit timestamp, changes only, 2 beats of 8 bits per sample, extraction clock faster
+sim_pre_trigger_max             : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, 4-bit timestamp (wraps), changes only, 3 beats of 16 bits per sample, extraction clock much slower
+sim_same_period                 : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, no timestamp, every sample stored (as 1.0.0), same period for both clocks
 

@@ -15,9 +15,12 @@ CAPI=2:
 # Revisions  :
 # Date        Version  Author   Description
 # 2026-10-22  1.0.0    mrosiere First Release
+# 2026-10-22  2.0.0    mrosiere Timestamp (TIMESTAMP_WIDTH), store only the
+#                               changes (CHANGE_ONLY), sample in several
+#                               beats (TDATA_WIDTH)
 #-----------------------------------------------------------------------------
 
-name        : asylum:debug:HWLA:1.0.0
+name        : asylum:debug:HWLA:2.0.0
 description : Hardware Logic Analyzer
 
 #=========================================
@@ -92,7 +95,7 @@ targets:
   #---------------------------------------
   lint_ghdl_synth_default : &lint_ghdl_synth
     << : *lint_ghdl
-    description     : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples)
+    description     : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
     tools :
       ghdl :
         run_options     : ["--no-run"]
@@ -116,21 +119,40 @@ targets:
       - PRE_TRIGGER=255
 
   #---------------------------------------
+  lint_ghdl_synth_all_samples :
+  #---------------------------------------
+    << : *lint_ghdl_synth
+    description     : Synthesis check of hwla_synth_top, no timestamp, every sample stored
+    parameters      :
+      - TIMESTAMP_WIDTH=0
+      - CHANGE_ONLY=false
+
+  #---------------------------------------
+  lint_ghdl_synth_uart :
+  #---------------------------------------
+    << : *lint_ghdl_synth
+    description     : Synthesis check of hwla_synth_top, 8-bit tdata (3 beats per sample, for uart_tx_axis)
+    parameters      :
+      - TDATA_WIDTH=8
+
+  #---------------------------------------
   lint_ghdl_synth_min :
   #---------------------------------------
     << : *lint_ghdl_synth
-    description     : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples)
+    description     : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples, no timestamp)
     parameters      :
       - NB_PROBE=1
       - DEPTH=2
       - PRE_TRIGGER=1
+      - TIMESTAMP_WIDTH=0
+      - CHANGE_ONLY=false
 
   #---------------------------------------
   # Simulation : tb_hwla with the generics of the target
   #---------------------------------------
   sim_basic: &sim_basic
     << : *default
-    description     : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, extraction clock slower
+    description     : Simulation of hwla with the UVVM AXI-Stream BFM, 12 probes, 32 samples, 10 pre-trigger samples, 16-bit timestamp, changes only, extraction clock slower
     filesets_append :
       - sim_basic
     toplevel        : tb_hwla
@@ -139,6 +161,9 @@ targets:
       - NB_PROBE=12
       - DEPTH=32
       - PRE_TRIGGER=10
+      - TIMESTAMP_WIDTH=16
+      - CHANGE_ONLY=true
+      - TDATA_WIDTH=0
       - TRIG_CLK_PERIOD=10
       - EXTRACT_CLK_PERIOD=18
     tools :
@@ -155,11 +180,14 @@ targets:
   sim_pre_trigger_0:
   #---------------------------------------
     << : *sim_basic
-    description     : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, extraction clock faster
+    description     : Simulation of hwla, 8 probes, 16 samples, no pre-trigger sample, 8-bit timestamp, changes only, 2 beats of 8 bits per sample, extraction clock faster
     parameters      :
       - NB_PROBE=8
       - DEPTH=16
       - PRE_TRIGGER=0
+      - TIMESTAMP_WIDTH=8
+      - CHANGE_ONLY=true
+      - TDATA_WIDTH=8
       - TRIG_CLK_PERIOD=26
       - EXTRACT_CLK_PERIOD=8
 
@@ -167,11 +195,14 @@ targets:
   sim_pre_trigger_max:
   #---------------------------------------
     << : *sim_basic
-    description     : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, extraction clock much slower
+    description     : Simulation of hwla, 33 probes, 64 samples, no post-trigger sample, 4-bit timestamp (wraps), changes only, 3 beats of 16 bits per sample, extraction clock much slower
     parameters      :
       - NB_PROBE=33
       - DEPTH=64
       - PRE_TRIGGER=63
+      - TIMESTAMP_WIDTH=4
+      - CHANGE_ONLY=true
+      - TDATA_WIDTH=16
       - TRIG_CLK_PERIOD=6
       - EXTRACT_CLK_PERIOD=34
 
@@ -179,12 +210,30 @@ targets:
   sim_same_period:
   #---------------------------------------
     << : *sim_basic
-    description     : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, same period for both clocks
+    description     : Simulation of hwla, 16 probes, 128 samples, 64 pre-trigger samples, no timestamp, every sample stored (as 1.0.0), same period for both clocks
     parameters      :
       - NB_PROBE=16
       - DEPTH=128
       - PRE_TRIGGER=64
+      - TIMESTAMP_WIDTH=0
+      - CHANGE_ONLY=false
+      - TDATA_WIDTH=0
       - TRIG_CLK_PERIOD=10
+      - EXTRACT_CLK_PERIOD=10
+
+  #---------------------------------------
+  sim_all_samples:
+  #---------------------------------------
+    << : *sim_basic
+    description     : Simulation of hwla, 8 probes, 32 samples, 16 pre-trigger samples, 16-bit timestamp, every sample stored, 32-bit tdata, extraction clock faster
+    parameters      :
+      - NB_PROBE=8
+      - DEPTH=32
+      - PRE_TRIGGER=16
+      - TIMESTAMP_WIDTH=16
+      - CHANGE_ONLY=false
+      - TDATA_WIDTH=32
+      - TRIG_CLK_PERIOD=14
       - EXTRACT_CLK_PERIOD=10
 
 #=========================================
@@ -205,21 +254,39 @@ parameters :
   # Generics of hwla_synth_top (lint_ghdl_synth_*) and of tb_hwla (sim_*)
   #---------------------------------------
   NB_PROBE :
-    description : Number of probes (width of a sample)
+    description : Number of probes
     datatype    : int
     default     : 8
     paramtype   : generic
 
   DEPTH :
-    description : Number of samples of a capture (power of 2)
+    description : Number of stored samples of a capture (power of 2)
     datatype    : int
     default     : 256
     paramtype   : generic
 
   PRE_TRIGGER :
-    description : Number of samples before the trigger sample (0 to DEPTH-1)
+    description : Number of stored samples before the trigger sample (0 to DEPTH-1)
     datatype    : int
     default     : 128
+    paramtype   : generic
+
+  TIMESTAMP_WIDTH :
+    description : Width of the timestamp of a sample (0 = no timestamp)
+    datatype    : int
+    default     : 16
+    paramtype   : generic
+
+  CHANGE_ONLY :
+    description : true, store a sample only if the probes changed ; false, store every sample
+    datatype    : bool
+    default     : true
+    paramtype   : generic
+
+  TDATA_WIDTH :
+    description : Width of the AXI-Stream tdata (multiple of 8), 0 = one beat per sample
+    datatype    : int
+    default     : 0
     paramtype   : generic
 
   #---------------------------------------

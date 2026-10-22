@@ -10,6 +10,7 @@
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 2026-10-22  1.0      mrosiere Created
+-- 2026-10-22  2.0      mrosiere hwla_sample_width, hwla_nb_beat, TDATA_WIDTH
 -------------------------------------------------------------------------------
 
 library IEEE;
@@ -21,18 +22,36 @@ use     asylum.math_pkg.all;
 package hwla_pkg is
 
   -----------------------------------------------------------------------------
+  -- hwla_sample_width
+  -----------------------------------------------------------------------------
+  -- Width of a stored sample : the timestamp (MSB) and the probes (LSB)
+  function hwla_sample_width (nb_probe        : positive;
+                              timestamp_width : natural ) return positive;
+
+  -----------------------------------------------------------------------------
   -- hwla_tdata_width
   -----------------------------------------------------------------------------
-  -- Width of the AXI-Stream tdata for nb_probe probes : nb_probe rounded up
-  -- to an integer number of bytes (AXI4-Stream), the unused MSB are 0
-  function hwla_tdata_width (nb_probe : positive) return positive;
+  -- Width of the AXI-Stream tdata : tdata_width, or when tdata_width = 0 the
+  -- sample width rounded up to an integer number of bytes (AXI4-Stream)
+  function hwla_tdata_width  (sample_width    : positive;
+                              tdata_width     : natural ) return positive;
+
+  -----------------------------------------------------------------------------
+  -- hwla_nb_beat
+  -----------------------------------------------------------------------------
+  -- Number of AXI-Stream beats of a sample
+  function hwla_nb_beat      (sample_width    : positive;
+                              tdata_width     : natural ) return positive;
 
 -- [COMPONENT_INSERT][BEGIN]
 component hwla is
   generic (
-    NB_PROBE         : positive := 8;                                        -- Number of probes (width of a sample)
-    DEPTH            : positive := 256;                                      -- Number of samples of a capture (power of 2)
-    PRE_TRIGGER      : natural  := 128                                       -- Number of samples before the trigger sample (0 to DEPTH-1)
+    NB_PROBE         : positive := 8;                                        -- Number of probes
+    DEPTH            : positive := 256;                                      -- Number of stored samples of a capture (power of 2)
+    PRE_TRIGGER      : natural  := 128;                                      -- Number of stored samples before the trigger sample (0 to DEPTH-1)
+    TIMESTAMP_WIDTH  : natural  := 16;                                       -- Width of the timestamp of a sample (0 : no timestamp)
+    CHANGE_ONLY      : boolean  := true;                                     -- true : store a sample only if the probes changed
+    TDATA_WIDTH      : natural  := 0                                         -- Width of tdata (multiple of 8), 0 : one beat per sample
     );
   port (
     -- Trigger domain
@@ -47,10 +66,10 @@ component hwla is
     -- Extraction domain
     extract_clk_i    : in  std_logic;
     extract_arst_b_i : in  std_logic;                                        -- Asynchronous reset, active low
-    m_axis_tdata_o   : out std_logic_vector(hwla_tdata_width(NB_PROBE)-1 downto 0); -- Sample on the NB_PROBE LSB, other bits 0
+    m_axis_tdata_o   : out std_logic_vector(hwla_tdata_width(hwla_sample_width(NB_PROBE,TIMESTAMP_WIDTH),TDATA_WIDTH)-1 downto 0); -- Beat of a sample
     m_axis_tvalid_o  : out std_logic;
     m_axis_tready_i  : in  std_logic;
-    m_axis_tlast_o   : out std_logic                                         -- 1 : last sample of the capture
+    m_axis_tlast_o   : out std_logic                                         -- 1 : last beat of the capture
     );
 end component hwla;
 
@@ -76,9 +95,11 @@ end component hwla_ram;
 
 component hwla_trigger is
   generic (
-    NB_PROBE     : positive := 8;                                  -- Number of probes (width of a sample)
-    DEPTH        : positive := 256;                                -- Number of samples of a capture (power of 2)
-    PRE_TRIGGER  : natural  := 128                                 -- Number of samples before the trigger sample (0 to DEPTH-1)
+    NB_PROBE        : positive := 8;                               -- Number of probes
+    DEPTH           : positive := 256;                             -- Number of stored samples of a capture (power of 2)
+    PRE_TRIGGER     : natural  := 128;                             -- Number of stored samples before the trigger sample (0 to DEPTH-1)
+    TIMESTAMP_WIDTH : natural  := 16;                              -- Width of the timestamp of a sample (0 : no timestamp)
+    CHANGE_ONLY     : boolean  := true                             -- true : store a sample only if the probes changed
     );
   port (
     -- Clock & Reset (trigger domain)
@@ -97,7 +118,7 @@ component hwla_trigger is
     -- RAM write port
     ram_we_o     : out std_logic;
     ram_waddr_o  : out std_logic_vector(log2(DEPTH)-1 downto 0);
-    ram_wdata_o  : out std_logic_vector(NB_PROBE   -1 downto 0);
+    ram_wdata_o  : out std_logic_vector(TIMESTAMP_WIDTH+NB_PROBE-1 downto 0); -- Timestamp & probes
 
     -- Handshake with the extraction domain
     dump_req_o   : out std_logic;                                  -- 1 : capture done, to be extracted
@@ -108,8 +129,9 @@ end component hwla_trigger;
 
 component hwla_extract is
   generic (
-    NB_PROBE        : positive := 8;                                         -- Number of probes (width of a sample)
-    DEPTH           : positive := 256                                        -- Number of samples of a capture (power of 2)
+    SAMPLE_WIDTH    : positive := 24;                                        -- Width of a sample (timestamp and probes)
+    DEPTH           : positive := 256;                                       -- Number of samples of a capture (power of 2)
+    TDATA_WIDTH     : natural  := 0                                          -- Width of tdata (multiple of 8), 0 : one beat per sample
     );
   port (
     -- Clock & Reset (extraction domain)
@@ -124,13 +146,13 @@ component hwla_extract is
     -- RAM read port
     ram_re_o        : out std_logic;
     ram_raddr_o     : out std_logic_vector(log2(DEPTH)-1 downto 0);
-    ram_rdata_i     : in  std_logic_vector(NB_PROBE   -1 downto 0);          -- Sample read, one clock cycle after ram_re_o
+    ram_rdata_i     : in  std_logic_vector(SAMPLE_WIDTH-1 downto 0);         -- Sample read, one clock cycle after ram_re_o
 
     -- AXI-Stream master
-    m_axis_tdata_o  : out std_logic_vector(hwla_tdata_width(NB_PROBE)-1 downto 0);
+    m_axis_tdata_o  : out std_logic_vector(hwla_tdata_width(SAMPLE_WIDTH,TDATA_WIDTH)-1 downto 0);
     m_axis_tvalid_o : out std_logic;
     m_axis_tready_i : in  std_logic;
-    m_axis_tlast_o  : out std_logic                                          -- 1 : last sample of the capture
+    m_axis_tlast_o  : out std_logic                                          -- 1 : last beat of the capture
     );
 end component hwla_extract;
 
@@ -141,11 +163,36 @@ end hwla_pkg;
 package body hwla_pkg is
 
   -----------------------------------------------------------------------------
+  -- hwla_sample_width
+  -----------------------------------------------------------------------------
+  function hwla_sample_width (nb_probe        : positive;
+                              timestamp_width : natural ) return positive is
+  begin
+    return nb_probe + timestamp_width;
+  end function;
+
+  -----------------------------------------------------------------------------
   -- hwla_tdata_width
   -----------------------------------------------------------------------------
-  function hwla_tdata_width (nb_probe : positive) return positive is
+  function hwla_tdata_width  (sample_width    : positive;
+                              tdata_width     : natural ) return positive is
   begin
-    return 8*((nb_probe+7)/8);
+    if tdata_width = 0
+    then
+      return 8*((sample_width+7)/8);
+    else
+      return tdata_width;
+    end if;
+  end function;
+
+  -----------------------------------------------------------------------------
+  -- hwla_nb_beat
+  -----------------------------------------------------------------------------
+  function hwla_nb_beat      (sample_width    : positive;
+                              tdata_width     : natural ) return positive is
+    constant TW : positive := hwla_tdata_width(sample_width, tdata_width);
+  begin
+    return (sample_width+TW-1)/TW;
   end function;
 
 end package body hwla_pkg;
