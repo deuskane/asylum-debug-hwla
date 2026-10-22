@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+jobs:
+#<GENERATE_BEGIN>
+  sim_basic:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_basic
+
+  sim_pre_trigger_0:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_0
+
+  sim_pre_trigger_max:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_pre_trigger_max
+
+  sim_same_period:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: sim_same_period
+
+#<GENERATE_END>
