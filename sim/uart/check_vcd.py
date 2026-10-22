@@ -15,12 +15,15 @@
 #              its capture, then the probes of the VCD are compared with the
 #              reference at each sample of the capture, from its first stored
 #              sample to its last one.
+#              --args-file FILE or @FILE : arguments read from FILE, one per line,
+#              written by tb_hwla_uart from its generics.
 #-----------------------------------------------------------------------------
 # Copyright (c) 2026
 #-----------------------------------------------------------------------------
 # Revisions  :
 # Date        Version  Author   Description
 # 2026-10-22  1.0      mrosiere Created
+# 2026-10-22  1.1      mrosiere Arguments from a file (--args-file, @FILE)
 #-----------------------------------------------------------------------------
 
 import argparse
@@ -73,13 +76,29 @@ def value_at(changes, keys, sample):
     return changes[i][1]
 
 
+def expand_args_files(argv):
+    """Arguments of the files given with --args-file FILE (one argument per
+    line), placed before the other arguments"""
+    pre = argparse.ArgumentParser(add_help=False)
+    pre.add_argument("--args-file", action="append", default=[])
+    known, rest = pre.parse_known_args(argv)
+    args = []
+    for path in known.args_file:
+        with open(path) as f:
+            args += [line.strip() for line in f if line.strip()]
+    return args + rest
+
+
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Check the VCD files of hwla2vcd against the reference of tb_hwla_uart")
+    parser = argparse.ArgumentParser(description="Check the VCD files of hwla2vcd against the reference of tb_hwla_uart. "
+                                                 "--args-file FILE or @FILE reads arguments from FILE, one per line.",
+                                     fromfile_prefix_chars="@")
+    parser.add_argument("--args-file", action="append", metavar="FILE", help="Read arguments from FILE, one per line (can be repeated)")
     parser.add_argument("ref", help="Reference file of the testbench")
     parser.add_argument("vcd", nargs="+", help="VCD files, one per capture, in order")
     parser.add_argument("--period", type=float, default=10.0, help="Period of the trigger clock in ns (default : 10)")
     parser.add_argument("--bus", default="probe", help="Name of the probe bus in the VCD files (default : probe)")
-    args = parser.parse_args(argv)
+    args = parser.parse_args(expand_args_files(sys.argv[1:] if argv is None else argv))
 
     period_ps     = round(args.period * 1000)
     changes, trig = read_ref(args.ref)

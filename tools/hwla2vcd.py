@@ -27,12 +27,14 @@
 #              (one wire per probe or one bus) and a "trigger" wire, high
 #              during the clock cycle of the trigger sample. One VCD file
 #              per capture (<output>_<n>.vcd when there are several).
+#              --args-file FILE or @FILE : arguments read from FILE, one per line.
 #-----------------------------------------------------------------------------
 # Copyright (c) 2026
 #-----------------------------------------------------------------------------
 # Revisions  :
 # Date        Version  Author   Description
 # 2026-10-22  1.0      mrosiere Created
+# 2026-10-22  1.1      mrosiere Arguments from a file (--args-file, @FILE)
 #-----------------------------------------------------------------------------
 
 import argparse
@@ -236,6 +238,19 @@ def write_vcd(path, samples, cfg, names, bus, period_ps, comment):
         f.write(f"#{(max(events) + 1) * period_ps}\n")
 
 
+def expand_args_files(argv):
+    """Arguments of the files given with --args-file FILE (one argument per
+    line), placed before the other arguments"""
+    pre = argparse.ArgumentParser(add_help=False)
+    pre.add_argument("--args-file", action="append", default=[])
+    known, rest = pre.parse_known_args(argv)
+    args = []
+    for path in known.args_file:
+        with open(path) as f:
+            args += [line.strip() for line in f if line.strip()]
+    return args + rest
+
+
 #=============================================================================
 # Main
 #=============================================================================
@@ -250,7 +265,10 @@ def config_from_args(args):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Rebuild a VCD file from the content of the HWLA (byte stream of its AXI-Stream, e.g. received on a UART)")
+    parser = argparse.ArgumentParser(description="Rebuild a VCD file from the content of the HWLA (byte stream of its AXI-Stream, e.g. received on a UART). "
+                                                 "--args-file FILE or @FILE reads arguments from FILE, one per line (e.g. the configuration of the HWLA).",
+                                     fromfile_prefix_chars="@")
+    parser.add_argument("--args-file", action="append", metavar="FILE", help="Read arguments from FILE, one per line (can be repeated)")
     parser.add_argument("input", nargs="?", default="-", help="Input file (- : standard input), ignored with --port")
     parser.add_argument("-o", "--output", help="Output VCD file (default : input with .vcd), <output>_<n>.vcd per capture when there are several")
     parser.add_argument("-f", "--format", choices=["bin", "hex"], default="bin", help="Input format : raw bytes (default) or text of hexadecimal bytes")
@@ -267,7 +285,7 @@ def main(argv=None):
     parser.add_argument("--names", help="Names of the probes, from probe 0, separated by commas")
     parser.add_argument("--bus", help="Dump the probes as one bus with this name, instead of one wire per probe")
     parser.add_argument("--capture", type=int, help="Write only the capture number CAPTURE (from 0)")
-    args = parser.parse_args(argv)
+    args = parser.parse_args(expand_args_files(sys.argv[1:] if argv is None else argv))
 
     try:
         cfg = config_from_args(args)
