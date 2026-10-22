@@ -52,6 +52,20 @@ filesets:
       - bitvis:verification:uvvm
 
   #---------------------------------------
+  # HWLA on a UART : uart_tx_axis, VCD rebuilt from the UART bytes (post_run
+  # hooks of sim_uart)
+  #---------------------------------------
+  sim_uart:
+    files        :
+      - sim/uart/tb_hwla_uart.vhd
+      - tools/hwla2vcd.py    : {file_type : user, copyto : hwla2vcd.py}
+      - sim/uart/check_vcd.py : {file_type : user, copyto : check_vcd.py}
+    file_type    : vhdlSource-2008
+    depend       :
+      - bitvis:verification:uvvm
+      - asylum:communication:uart
+
+  #---------------------------------------
   # Lint Files (pre_run hook of lint_ghdl_synth_*)
   #---------------------------------------
   files_lint:
@@ -236,9 +250,43 @@ targets:
       - TRIG_CLK_PERIOD=14
       - EXTRACT_CLK_PERIOD=10
 
+  #---------------------------------------
+  # HWLA on a UART : tb_hwla_uart, then the VCD rebuilt from the UART bytes
+  # by tools/hwla2vcd.py is checked against the probes of the testbench
+  #---------------------------------------
+  sim_uart:
+    << : *default
+    description     : Simulation of hwla connected to uart_tx_axis (UVVM UART BFM), VCD rebuilt from the UART bytes by tools/hwla2vcd.py and checked
+    filesets_append :
+      - sim_uart
+    toplevel        : tb_hwla_uart
+    default_tool    : ghdl
+    tools :
+      ghdl :
+        analyze_options :
+          - "$(GHDL_ANALYZE_OPTION)"
+          - "-Wall"
+          - "-frelaxed"
+        run_options     :
+          - "$(GHDL_RUN_OPTION)"
+          - "--ieee-asserts=disable"
+    hooks :
+      post_run : [hwla2vcd, check_vcd]
+
 #=========================================
 scripts:
 #=========================================
+
+  #---------------------------------------
+  # post_run hooks of sim_uart (cwd = work_root) : the arguments are the
+  # default generics of tb_hwla_uart (8 probes, DEPTH 32, PRE_TRIGGER 8,
+  # 16-bit timestamp, 8-bit tdata, 2 captures, trigger clock of 10 ns)
+  #---------------------------------------
+  hwla2vcd :
+    cmd : [python3, hwla2vcd.py, hwla_uart.hex, --format, hex, --nb-probe, "8", --depth, "32", --pre-trigger, "8", --timestamp-width, "16", --tdata-width, "8", --period, "10", --bus, probe, -o, hwla_uart.vcd]
+
+  check_vcd :
+    cmd : [python3, check_vcd.py, hwla_uart_ref.txt, hwla_uart_0.vcd, hwla_uart_1.vcd, --period, "10"]
 
   #---------------------------------------
   # pre_run hook of lint_ghdl_synth_* (cwd = work_root)
