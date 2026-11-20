@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
--- Title      : hwla_synth_top
+-- Title      : hwla_wrapper
 -- Project    : Asylum
 -------------------------------------------------------------------------------
--- File       : hwla_synth_top.vhd
+-- File       : hwla_wrapper.vhd
 -- Author     : Mathieu Rosiere
 -------------------------------------------------------------------------------
 -- Description:
--- Synthesis check top (lint_ghdl, lint_ghdl_synth) : hwla in the work
--- library (the toplevel of the edalize ghdl flow), same generics and ports.
+-- Top of the lint and synthesis targets (lint_ghdl, lint_ghdl_synth_*,
+-- syn_*) : hwla, same generics and ports.
 -------------------------------------------------------------------------------
 -- Copyright (c) 2026
 -------------------------------------------------------------------------------
@@ -15,6 +15,8 @@
 -- Date        Version  Author   Description
 -- 2026-10-22  1.0      mrosiere Created
 -- 2026-10-22  2.0      mrosiere TIMESTAMP_WIDTH, CHANGE_ONLY, TDATA_WIDTH
+-- 2026-11-20  2.1      mrosiere hwla_wrapper (was hwla_synth_top), library
+--                               asylum
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -22,7 +24,7 @@ use     ieee.std_logic_1164.all;
 library asylum;
 use     asylum.hwla_pkg.all;
 
-entity hwla_synth_top is
+entity hwla_wrapper is
   generic (
     NB_PROBE         : positive := 8;
     DEPTH            : positive := 256;
@@ -49,9 +51,9 @@ entity hwla_synth_top is
     m_axis_tready_i  : in  std_logic;
     m_axis_tlast_o   : out std_logic
   );
-end entity hwla_synth_top;
+end entity hwla_wrapper;
 
-architecture rtl of hwla_synth_top is
+architecture rtl of hwla_wrapper is
 begin
 
   ins_hwla : entity asylum.hwla
