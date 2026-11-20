@@ -1,11 +1,11 @@
 default                         : Default Target
-lint_ghdl                       : Lint with GHDL (-Wall analysis and elaboration of hwla_synth_top)
-lint_ghdl_synth_all_samples     : Synthesis check of hwla_synth_top, no timestamp, every sample stored
-lint_ghdl_synth_default         : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
-lint_ghdl_synth_min             : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples, no timestamp)
-lint_ghdl_synth_pre_trigger_0   : Synthesis check of hwla_synth_top, no pre-trigger sample
-lint_ghdl_synth_pre_trigger_max : Synthesis check of hwla_synth_top, no post-trigger sample
-lint_ghdl_synth_uart            : Synthesis check of hwla_synth_top, 8-bit tdata (3 beats per sample, for uart_tx_axis)
+lint_ghdl                       : Lint with GHDL (-Wall analysis and elaboration of hwla_wrapper)
+lint_ghdl_synth_all_samples     : Synthesis check of hwla_wrapper, no timestamp, every sample stored
+lint_ghdl_synth_default         : Synthesis check of hwla_wrapper, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
+lint_ghdl_synth_min             : Synthesis check of hwla_wrapper, smallest configuration (1 probe, 2 samples, no timestamp)
+lint_ghdl_synth_pre_trigger_0   : Synthesis check of hwla_wrapper, no pre-trigger sample
+lint_ghdl_synth_pre_trigger_max : Synthesis check of hwla_wrapper, no post-trigger sample
+lint_ghdl_synth_uart            : Synthesis check of hwla_wrapper, 8-bit tdata (3 beats per sample, for uart_tx_axis)
 sim_all_samples                 : Simulation of hwla (all_samples), 8 probes, 32 samples, 16 pre-trigger samples, 16-bit timestamp, every sample stored, 32-bit tdata, extraction clock faster, every scenario
 sim_basic                       : Simulation of hwla (basic) with the UVVM AXI-Stream BFM - build only (scenarios of TESTS_LIST)
 sim_basic_async_reset           : Simulation of hwla (basic) - asynchronous reset during an extraction
@@ -26,4 +26,10 @@ sim_pre_trigger_max             : Simulation of hwla (pre_trigger_max), 33 probe
 sim_same_period                 : Simulation of hwla (same_period), 16 probes, 128 samples, 64 pre-trigger samples, no timestamp, every sample stored, same period for both clocks, every scenario
 sim_uart                        : Simulation of hwla connected to uart_tx_axis (UVVM UART BFM), 32 samples, 8 pre-trigger samples, 16-bit timestamp, changes only, VCD rebuilt from the UART bytes by tools/hwla2vcd.py and checked
 sim_uart_no_timestamp           : Simulation of hwla connected to uart_tx_axis, 64 samples, 16 pre-trigger samples, no timestamp, every sample stored (1 byte per sample), VCD rebuilt and checked
+syn_all_samples                 : Synthesis (Artix-7, sky130) of hwla_wrapper, no timestamp, every sample stored
+syn_default                     : Synthesis (Artix-7, sky130) of hwla_wrapper, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
+syn_min                         : Synthesis (Artix-7, sky130) of hwla_wrapper, smallest configuration (1 probe, 2 samples, no timestamp)
+syn_pre_trigger_0               : Synthesis (Artix-7, sky130) of hwla_wrapper, no pre-trigger sample
+syn_pre_trigger_max             : Synthesis (Artix-7, sky130) of hwla_wrapper, no post-trigger sample
+syn_uart                        : Synthesis (Artix-7, sky130) of hwla_wrapper, 8-bit tdata (3 beats per sample, for uart_tx_axis)
 

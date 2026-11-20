@@ -107,4 +107,78 @@ jobs:
     with:
       name: sim_uart_no_timestamp
 
+  lint_ghdl:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl
+
+  lint_ghdl_synth_all_samples:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_all_samples
+
+  lint_ghdl_synth_default:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_default
+
+  lint_ghdl_synth_min:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_min
+
+  lint_ghdl_synth_pre_trigger_0:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_pre_trigger_0
+
+  lint_ghdl_synth_pre_trigger_max:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_pre_trigger_max
+
+  lint_ghdl_synth_uart:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: lint_ghdl_synth_uart
+
+  syn_all_samples:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_all_samples
+
+  syn_default:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_default
+
+  syn_min:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_min
+
+  syn_pre_trigger_0:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_pre_trigger_0
+
+  syn_pre_trigger_max:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_pre_trigger_max
+
+  syn_uart:
+    uses: deuskane/asylum-ci/.github/workflows/vhdl-ci.yml@main
+    with:
+      name: syn_uart
+
+  badges:
+    needs: [sim_all_samples, sim_basic, sim_basic_async_reset, sim_basic_back_pressure, sim_basic_capture, sim_basic_continuous, sim_basic_first_sample, sim_basic_late_trigger, sim_basic_level_trigger, sim_basic_not_armed, sim_basic_pre_trigger_ignored, sim_basic_reset_values, sim_basic_sparse, sim_basic_stall, sim_min, sim_pre_trigger_0, sim_pre_trigger_max, sim_same_period, sim_uart, sim_uart_no_timestamp, lint_ghdl, lint_ghdl_synth_all_samples, lint_ghdl_synth_default, lint_ghdl_synth_min, lint_ghdl_synth_pre_trigger_0, lint_ghdl_synth_pre_trigger_max, lint_ghdl_synth_uart, syn_all_samples, syn_default, syn_min, syn_pre_trigger_0, syn_pre_trigger_max, syn_uart]
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    uses: deuskane/asylum-ci/.github/workflows/badges.yml@main
+    with:
+      results: ${{ toJSON(needs) }}
+
 #<GENERATE_END>

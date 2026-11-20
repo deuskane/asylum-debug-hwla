@@ -87,14 +87,22 @@ filesets:
       - asylum:communication:uart
 
   #---------------------------------------
-  # Lint Files (pre_run hook of lint_ghdl_synth_*)
+  syn:
   #---------------------------------------
-  files_lint:
-    files:
-      - syn/ghdl/hwla_synth_top.vhd
-      - syn/ghdl/ghdl_synth.sh : {file_type : user, copyto : ghdl_synth.sh}
-      - syn/ghdl/ghdl_synth.mk : {file_type : user, copyto : ghdl_synth.mk}
-    file_type : vhdlSource-2008
+    files        :
+      - syn/hwla_wrapper.vhd
+    file_type    : vhdlSource
+    logical_name : asylum
+    # ghdl_synth.sh / ghdl_synth.mk (pre_run hook of lint_ghdl_synth_*)
+    depend       :
+      - asylum:utils:ghdl_synth
+
+  #---------------------------------------
+  syn_yosys:
+  #---------------------------------------
+    # yosys_synth.sh / yosys_synth.mk / yosys_synth.py (pre_run hook of syn_*)
+    depend       :
+      - asylum:utils:yosys_synth
 
 #=========================================
 targets:
@@ -114,9 +122,9 @@ targets:
   #---------------------------------------
   lint_ghdl : &lint_ghdl
     << : *default
-    description     : Lint with GHDL (-Wall analysis and elaboration of hwla_synth_top)
-    toplevel        : hwla_synth_top
-    filesets_append : [files_lint]
+    description     : Lint with GHDL (-Wall analysis and elaboration of hwla_wrapper)
+    toplevel        : asylum.hwla_wrapper
+    filesets_append : [syn]
     default_tool    : ghdl
     tools :
       ghdl :
@@ -124,13 +132,14 @@ targets:
 
   #---------------------------------------
   # Synthesis check : -Wall analysis, ghdl --synth -Wall and elaboration
-  # (no simulation) of hwla_synth_top with the generics of the target.
-  # The pre_run hook adds syn/ghdl/ghdl_synth.mk to the edalize Makefile.
+  # (no simulation) of hwla_wrapper with the generics of the target.
+  # The pre_run hook (ghdl_synth.sh of asylum:utils:ghdl_synth) adds
+  # ghdl_synth.mk to the edalize Makefile.
   # FuseSoC merges tools in depth : analyze_options comes from lint_ghdl.
   #---------------------------------------
   lint_ghdl_synth_default : &lint_ghdl_synth
     << : *lint_ghdl
-    description     : Synthesis check of hwla_synth_top, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
+    description     : Synthesis check of hwla_wrapper, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
     tools :
       ghdl :
         run_options     : ["--no-run"]
@@ -141,7 +150,7 @@ targets:
   lint_ghdl_synth_pre_trigger_0 :
   #---------------------------------------
     << : *lint_ghdl_synth
-    description     : Synthesis check of hwla_synth_top, no pre-trigger sample
+    description     : Synthesis check of hwla_wrapper, no pre-trigger sample
     parameters      :
       - PRE_TRIGGER=0
 
@@ -149,7 +158,7 @@ targets:
   lint_ghdl_synth_pre_trigger_max :
   #---------------------------------------
     << : *lint_ghdl_synth
-    description     : Synthesis check of hwla_synth_top, no post-trigger sample
+    description     : Synthesis check of hwla_wrapper, no post-trigger sample
     parameters      :
       - PRE_TRIGGER=255
 
@@ -157,7 +166,7 @@ targets:
   lint_ghdl_synth_all_samples :
   #---------------------------------------
     << : *lint_ghdl_synth
-    description     : Synthesis check of hwla_synth_top, no timestamp, every sample stored
+    description     : Synthesis check of hwla_wrapper, no timestamp, every sample stored
     parameters      :
       - TIMESTAMP_WIDTH=0
       - CHANGE_ONLY=false
@@ -166,7 +175,7 @@ targets:
   lint_ghdl_synth_uart :
   #---------------------------------------
     << : *lint_ghdl_synth
-    description     : Synthesis check of hwla_synth_top, 8-bit tdata (3 beats per sample, for uart_tx_axis)
+    description     : Synthesis check of hwla_wrapper, 8-bit tdata (3 beats per sample, for uart_tx_axis)
     parameters      :
       - TDATA_WIDTH=8
 
@@ -174,7 +183,69 @@ targets:
   lint_ghdl_synth_min :
   #---------------------------------------
     << : *lint_ghdl_synth
-    description     : Synthesis check of hwla_synth_top, smallest configuration (1 probe, 2 samples, no timestamp)
+    description     : Synthesis check of hwla_wrapper, smallest configuration (1 probe, 2 samples, no timestamp)
+    parameters      :
+      - NB_PROBE=1
+      - DEPTH=2
+      - PRE_TRIGGER=1
+      - TIMESTAMP_WIDTH=0
+      - CHANGE_ONLY=false
+
+  #---------------------------------------
+  # Synthesis : size of hwla_wrapper with the generics of the target,
+  # Xilinx Artix-7 (LUT, FF, BRAM, DSP) and sky130 (area), by Yosys and
+  # its GHDL plugin. Same configurations as lint_ghdl_synth_*.
+  # The pre_run hook (yosys_synth.sh of asylum:utils:yosys_synth) adds
+  # yosys_synth.mk to the edalize Makefile.
+  #---------------------------------------
+  syn_default : &syn
+    << : *lint_ghdl
+    description     : Synthesis (Artix-7, sky130) of hwla_wrapper, default generics (8 probes, 256 samples, 128 pre-trigger samples, 16-bit timestamp, changes only)
+    filesets_append : [syn, syn_yosys]
+    tools :
+      ghdl :
+        run_options     : ["--no-run"]
+    hooks :
+      pre_run : [yosys_synth]
+
+  #---------------------------------------
+  syn_pre_trigger_0 :
+  #---------------------------------------
+    << : *syn
+    description     : Synthesis (Artix-7, sky130) of hwla_wrapper, no pre-trigger sample
+    parameters      :
+      - PRE_TRIGGER=0
+
+  #---------------------------------------
+  syn_pre_trigger_max :
+  #---------------------------------------
+    << : *syn
+    description     : Synthesis (Artix-7, sky130) of hwla_wrapper, no post-trigger sample
+    parameters      :
+      - PRE_TRIGGER=255
+
+  #---------------------------------------
+  syn_all_samples :
+  #---------------------------------------
+    << : *syn
+    description     : Synthesis (Artix-7, sky130) of hwla_wrapper, no timestamp, every sample stored
+    parameters      :
+      - TIMESTAMP_WIDTH=0
+      - CHANGE_ONLY=false
+
+  #---------------------------------------
+  syn_uart :
+  #---------------------------------------
+    << : *syn
+    description     : Synthesis (Artix-7, sky130) of hwla_wrapper, 8-bit tdata (3 beats per sample, for uart_tx_axis)
+    parameters      :
+      - TDATA_WIDTH=8
+
+  #---------------------------------------
+  syn_min :
+  #---------------------------------------
+    << : *syn
+    description     : Synthesis (Artix-7, sky130) of hwla_wrapper, smallest configuration (1 probe, 2 samples, no timestamp)
     parameters      :
       - NB_PROBE=1
       - DEPTH=2
@@ -554,12 +625,18 @@ scripts:
   ghdl_synth :
     cmd : [bash, ghdl_synth.sh]
 
+  #---------------------------------------
+  # pre_run hook of syn_* (cwd = work_root)
+  #---------------------------------------
+  yosys_synth :
+    cmd : [bash, yosys_synth.sh]
+
 #=========================================
 parameters :
 #=========================================
 
   #---------------------------------------
-  # Generics of hwla_synth_top (lint_ghdl_synth_*) and of tb_hwla (sim_*)
+  # Generics of hwla_wrapper (lint_ghdl_synth_*, syn_*) and of tb_hwla (sim_*)
   #---------------------------------------
   NB_PROBE :
     description : Number of probes
