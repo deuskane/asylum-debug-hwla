@@ -1,156 +1,363 @@
 <mxfile host="Electron">
-  <diagram name="Overview" id="block">
-    <mxGraphModel dx="870" dy="544" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1269" pageHeight="827" math="0" shadow="0">
+  <diagram name="Overview" id="hwla-ov">
+    <mxGraphModel grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="top" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="470" width="940" x="160" y="140" as="geometry" />
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="hwla-ov-1" value="generics: NB_PROBE, DEPTH, PRE_TRIGGER, TIMESTAMP_WIDTH, CHANGE_ONLY, TDATA_WIDTH" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;fontStyle=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="160" y="100" width="900" height="30" as="geometry"/>
         </mxCell>
-        <mxCell id="top_t" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="hwla" vertex="1">
-          <mxGeometry height="20" width="60" x="160" y="140" as="geometry" />
+        <mxCell id="hwla-ov-2" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="140" width="920" height="460" as="geometry"/>
         </mxCell>
-        <mxCell id="gen" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=top;rounded=0;fontSize=10;" value="&lt;b&gt;Generics&lt;/b&gt; : NB_PROBE, DEPTH, PRE_TRIGGER, TIMESTAMP_WIDTH, CHANGE_ONLY, TDATA_WIDTH" vertex="1">
-          <mxGeometry height="30" width="860" x="230" y="142" as="geometry" />
+        <mxCell id="hwla-ov-3" value="hwla" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="160" y="140" width="60" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="dom_t" parent="1" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;strokeColor=#999999;verticalAlign=bottom;align=left;spacingLeft=6;fontColor=#666666;fontSize=10;" value="Trigger domain : trig_clk_i, trig_arst_b_i" vertex="1">
-          <mxGeometry height="425" width="430" x="175" y="175" as="geometry" />
+        <mxCell id="hwla-ov-4" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="190" y="180" width="380" height="380" as="geometry"/>
         </mxCell>
-        <mxCell id="dom_e" parent="1" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;strokeColor=#999999;verticalAlign=bottom;align=left;spacingLeft=6;fontColor=#666666;fontSize=10;" value="Extraction domain : extract_clk_i, extract_arst_b_i" vertex="1">
-          <mxGeometry height="425" width="370" x="715" y="175" as="geometry" />
+        <mxCell id="hwla-ov-5" value="hwla_trigger" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="190" y="180" width="100" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="trig" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontStyle=1;" value="hwla_trigger" vertex="1">
-          <mxGeometry height="385" width="400" x="190" y="185" as="geometry" />
+        <mxCell id="hwla-ov-6" value="trigger domain: trig_clk_i, trig_arst_b_i" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;align=center;" vertex="1" parent="1">
+          <mxGeometry x="190" y="562" width="380" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="in" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="input stage&lt;br&gt;probe_r, trigger_r" vertex="1">
-          <mxGeometry height="60" width="110" x="205" y="215" as="geometry" />
+        <mxCell id="hwla-ov-7" value="input stage&lt;br&gt;probe_r, trigger_r" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="210" y="215" width="130" height="50" as="geometry"/>
         </mxCell>
-        <mxCell id="chg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="store ? change,&lt;br&gt;first sample,&lt;br&gt;timestamp 0, trigger" vertex="1">
-          <mxGeometry height="60" width="110" x="335" y="215" as="geometry" />
+        <mxCell id="hwla-ov-8" value="timestamp&lt;br&gt;TIMESTAMP_WIDTH bits" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="210" y="290" width="130" height="50" as="geometry"/>
         </mxCell>
-        <mxCell id="wa" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="write address&lt;br&gt;(circular buffer)" vertex="1">
-          <mxGeometry height="60" width="110" x="465" y="215" as="geometry" />
+        <mxCell id="hwla-ov-9" value="store? probes changed,&lt;br&gt;first, trigger, timestamp 0" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="390" y="215" width="160" height="50" as="geometry"/>
         </mxCell>
-        <mxCell id="ts" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="timestamp&lt;br&gt;TIMESTAMP_WIDTH bits" vertex="1">
-          <mxGeometry height="60" width="110" x="205" y="300" as="geometry" />
+        <mxCell id="hwla-ov-10" value="write address&lt;br&gt;(circular buffer)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="390" y="290" width="160" height="50" as="geometry"/>
         </mxCell>
-        <mxCell id="fsm" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="capture FSM&lt;br&gt;&lt;br&gt;IDLE, FILL, ARMED,&lt;br&gt;POST, DUMP,&lt;br&gt;DUMP_END" vertex="1">
-          <mxGeometry height="110" width="110" x="335" y="390" as="geometry" />
+        <mxCell id="hwla-ov-11" value="" style="points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;fillColor=#FF6A00;strokeColor=none;shape=mxgraph.alibaba_cloud.multi-cloud_finops;" vertex="1" parent="1">
+          <mxGeometry x="235" y="380" width="60" height="42.86" as="geometry"/>
         </mxCell>
-        <mxCell id="s_ack" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;fontSize=10;" value="sync2dffrn (ack)" vertex="1">
-          <mxGeometry height="35" width="110" x="465" y="520" as="geometry" />
+        <mxCell id="hwla-ov-12" value="capture FSM&lt;br&gt;IDLE FILL ARMED POST DUMP DUMP_END" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="210" y="425" width="160" height="40" as="geometry"/>
         </mxCell>
-        <mxCell id="ram" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="hwla_ram&lt;br&gt;&lt;br&gt;DEPTH x&lt;br&gt;(TIMESTAMP_WIDTH&lt;br&gt;+ NB_PROBE)&lt;br&gt;&lt;br&gt;write port :&lt;br&gt;trig_clk_i&lt;br&gt;&lt;br&gt;read port :&lt;br&gt;extract_clk_i" vertex="1">
-          <mxGeometry height="200" width="80" x="620" y="260" as="geometry" />
+        <mxCell id="hwla-ov-13" value="sync2dffrn (ack)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="390" y="480" width="160" height="36" as="geometry"/>
         </mxCell>
-        <mxCell id="ext" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;verticalAlign=top;fontStyle=1;" value="hwla_extract" vertex="1">
-          <mxGeometry height="385" width="340" x="730" y="185" as="geometry" />
-        </mxCell>
-        <mxCell id="ra" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="read address&lt;br&gt;from dump_addr&lt;br&gt;(oldest sample)" vertex="1">
-          <mxGeometry height="60" width="110" x="745" y="215" as="geometry" />
-        </mxCell>
-        <mxCell id="beat" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="beats&lt;br&gt;&lt;br&gt;NB_BEAT beats of&lt;br&gt;TDATA_WIDTH bits per&lt;br&gt;sample, from the LSB,&lt;br&gt;tlast : last beat" vertex="1">
-          <mxGeometry height="100" width="170" x="870" y="330" as="geometry" />
-        </mxCell>
-        <mxCell id="s_req" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;fontSize=10;" value="sync2dffrn (req)" vertex="1">
-          <mxGeometry height="40" width="95" x="745" y="470" as="geometry" />
-        </mxCell>
-        <mxCell id="efsm" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="extraction FSM&lt;br&gt;&lt;br&gt;IDLE, DUMP, ACK" vertex="1">
-          <mxGeometry height="100" width="120" x="870" y="450" as="geometry" />
-        </mxCell>
-        <mxCell id="dsg" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="Probed design" vertex="1">
-          <mxGeometry height="255" width="110" x="20" y="215" as="geometry" />
-        </mxCell>
-        <mxCell id="led" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="Status&lt;br&gt;(LED, debug)" vertex="1">
-          <mxGeometry height="50" width="110" x="20" y="510" as="geometry" />
-        </mxCell>
-        <mxCell id="sink" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" value="AXI-Stream slave&lt;br&gt;(uart_tx_axis,&lt;br&gt;FIFO, ...)" vertex="1">
-          <mxGeometry height="100" width="110" x="1130" y="330" as="geometry" />
-        </mxCell>
-        <mxCell id="e_probe" edge="1" parent="1" source="dsg" target="in" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.118;entryX=0;entryY=0.5;" value="probe_i&lt;br&gt;trigger_i">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_arm" edge="1" parent="1" source="dsg" target="fsm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.945;entryX=0;entryY=0.6;" value="arm_i">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_stat" edge="1" parent="1" source="fsm" target="led" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" value="armed_o, triggered_o">
+        <mxCell id="hwla-ov-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
           <mxGeometry relative="1" as="geometry">
+            <mxPoint x="340" y="240" as="sourcePoint"/>
+            <mxPoint x="390" y="240" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="465" y="265" as="sourcePoint"/>
+            <mxPoint x="465" y="290" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="295" y="400" as="sourcePoint"/>
+            <mxPoint x="465" y="340" as="targetPoint"/>
             <Array as="points">
-              <mxPoint x="390" y="535" />
+              <mxPoint x="465" y="400"/>
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_axis" edge="1" parent="1" source="beat" target="sink" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=3;exitX=1;exitY=0.5;entryX=0;entryY=0.5;startArrow=classic;startFill=1;" value="m_axis_tdata_o&lt;br&gt;tvalid, tlast&lt;br&gt;tready">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="hwla-ov-17" value="recording" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="330" y="380" width="90" height="20" as="geometry"/>
         </mxCell>
-        <mxCell id="e_in_chg" edge="1" parent="1" source="in" target="chg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" value="probes">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="hwla-ov-18" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="610" y="230" width="130" height="220" as="geometry"/>
         </mxCell>
-        <mxCell id="e_in_fsm" edge="1" parent="1" source="in" target="fsm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.8;entryX=0;entryY=0.2;" value="trigger">
+        <mxCell id="hwla-ov-19" value="hwla_ram" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="610" y="230" width="80" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-20" value="DEPTH words of&lt;br&gt;TIMESTAMP_WIDTH&lt;br&gt;+ NB_PROBE bits&lt;br&gt;&lt;br&gt;write port:&lt;br&gt;trig_clk_i&lt;br&gt;&lt;br&gt;read port:&lt;br&gt;extract_clk_i" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="615" y="255" width="120" height="190" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-21" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="315" as="sourcePoint"/>
+            <mxPoint x="610" y="315" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-22" value="we, waddr,&lt;br&gt;wdata" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="552" y="270" width="58" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-23" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="780" y="180" width="280" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-24" value="hwla_extract" style="rounded=0;whiteSpace=wrap;html=1;fontStyle=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="780" y="180" width="100" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-25" value="extraction domain: extract_clk_i, extract_arst_b_i" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;align=center;" vertex="1" parent="1">
+          <mxGeometry x="780" y="562" width="280" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-26" value="read address&lt;br&gt;from dump_addr (oldest sample)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="800" y="215" width="240" height="50" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-27" value="beats: NB_BEAT beats of TDATA_WIDTH&lt;br&gt;bits per sample, from the LSB,&lt;br&gt;tlast with the last beat" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="800" y="290" width="240" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-28" value="" style="points=[];aspect=fixed;html=1;align=center;shadow=0;dashed=0;fillColor=#FF6A00;strokeColor=none;shape=mxgraph.alibaba_cloud.multi-cloud_finops;" vertex="1" parent="1">
+          <mxGeometry x="820" y="395" width="60" height="42.86" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-29" value="extraction FSM&lt;br&gt;IDLE DUMP ACK" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="890" y="395" width="150" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-30" value="sync2dffrn (req)" style="rounded=1;whiteSpace=wrap;html=1;fontSize=11;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="800" y="480" width="160" height="36" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-31" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="800" y="255" as="sourcePoint"/>
+            <mxPoint x="740" y="255" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-32" value="re, raddr" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="745" y="235" width="55" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="330" as="sourcePoint"/>
+            <mxPoint x="800" y="330" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-34" value="sample" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="745" y="310" width="55" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-35" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="550" y="470" as="sourcePoint"/>
+            <mxPoint x="800" y="470" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-36" value="dump_req, dump_addr" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="590" y="452" width="170" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-37" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="800" y="505" as="sourcePoint"/>
+            <mxPoint x="550" y="505" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-38" value="dump_ack" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;align=center;" vertex="1" parent="1">
+          <mxGeometry x="610" y="505" width="130" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-39" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="100" y="220" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-40" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="120" y="230" as="sourcePoint"/>
+            <mxPoint x="210" y="230" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-41" value="probe_i [NB_PROBE-1:0]" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=right;" vertex="1" parent="1">
+          <mxGeometry x="-80" y="215" width="170" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-42" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="100" y="245" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-43" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="120" y="255" as="sourcePoint"/>
+            <mxPoint x="210" y="255" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-44" value="trigger_i" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=right;" vertex="1" parent="1">
+          <mxGeometry x="-80" y="240" width="170" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-45" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="100" y="385" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-46" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="120" y="395" as="sourcePoint"/>
+            <mxPoint x="235" y="395" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-47" value="arm_i" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=right;" vertex="1" parent="1">
+          <mxGeometry x="-80" y="380" width="170" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-48" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="100" y="420" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-49" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="235" y="430" as="sourcePoint"/>
+            <mxPoint x="120" y="430" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-50" value="armed_o, triggered_o" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=right;" vertex="1" parent="1">
+          <mxGeometry x="-80" y="415" width="170" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-51" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="290" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-52" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1040" y="300" as="sourcePoint"/>
+            <mxPoint x="1100" y="300" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-53" value="m_axis_tdata_o" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="285" width="170" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-54" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="310" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-55" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1040" y="320" as="sourcePoint"/>
+            <mxPoint x="1100" y="320" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-56" value="m_axis_tvalid_o" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="305" width="170" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-57" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="330" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-58" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1040" y="340" as="sourcePoint"/>
+            <mxPoint x="1100" y="340" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-59" value="m_axis_tlast_o" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="325" width="170" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-60" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="1100" y="350" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-ov-61" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1100" y="360" as="sourcePoint"/>
+            <mxPoint x="1040" y="360" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="hwla-ov-62" value="m_axis_tready_i" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="345" width="170" height="30" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="FSM" id="hwla-fsm">
+    <mxGraphModel grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="hwla-fsm-1" value="&lt;b&gt;hwla_trigger&lt;/b&gt;: capture FSM (trigger domain)" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="600" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-2" value="IDLE" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="100" y="200" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-3" value="FILL" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="330" y="200" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-4" value="ARMED" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="560" y="200" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-5" value="POST" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="790" y="200" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-6" value="DUMP" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="200" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-7" value="DUMP_END" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="1250" y="200" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-8" value="" style="ellipse;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="30" y="212" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-8" target="hwla-fsm-2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-10" value="reset" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;fontStyle=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="10" y="188" width="60" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-11" value="arm_i = 1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-2" target="hwla-fsm-3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-12" value="PRE_TRIGGER&lt;br&gt;samples stored" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-3" target="hwla-fsm-4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-13" value="trigger&lt;br&gt;sample" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-4" target="hwla-fsm-5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-14" value="POST_TRIGGER&lt;br&gt;samples stored" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-5" target="hwla-fsm-6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-15" value="dump_ack = 1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-6" target="hwla-fsm-7">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-16" value="arm_i = 1, PRE_TRIGGER = 0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-2" target="hwla-fsm-4">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="325" y="263" />
-              <mxPoint x="325" y="412" />
+              <mxPoint x="160" y="140"/>
+              <mxPoint x="620" y="140"/>
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_fsm_chg" edge="1" parent="1" source="fsm" target="chg" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;entryX=0.5;entryY=1;" value="recording">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_chg_wa" edge="1" parent="1" source="chg" target="wa" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" value="we">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_wa_ram" edge="1" parent="1" source="wa" target="ram" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.1;" value="we, waddr">
+        <mxCell id="hwla-fsm-17" value="trigger sample, POST_TRIGGER = 0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.75;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-4" target="hwla-fsm-6">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="598" y="245" />
-              <mxPoint x="598" y="280" />
+              <mxPoint x="650" y="100"/>
+              <mxPoint x="1080" y="100"/>
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_ts_ram" edge="1" parent="1" source="ts" target="ram" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.35;" value="timestamp &amp;amp; probes">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_fsm_req" edge="1" parent="1" source="fsm" target="s_req" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.909;entryX=0;entryY=0.5;" value="dump_req, dump_addr">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_ack_fsm" edge="1" parent="1" source="s_ack" target="fsm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=1;entryY=1;" value="">
+        <mxCell id="hwla-fsm-18" value="dump_ack = 0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-7" target="hwla-fsm-2">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="455" y="537" />
-              <mxPoint x="455" y="500" />
+              <mxPoint x="1310" y="300"/>
+              <mxPoint x="160" y="300"/>
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_req_fsm" edge="1" parent="1" source="s_req" target="efsm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.4;" value="">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="hwla-fsm-19" value="armed_o = 1 in FILL and ARMED, triggered_o = 1 in POST, DUMP and DUMP_END, dump_req = 1 in DUMP" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;fontStyle=2;align=center;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="320" width="900" height="30" as="geometry"/>
         </mxCell>
-        <mxCell id="e_efsm_ra" edge="1" parent="1" source="efsm" target="ra" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.1;entryX=0.5;entryY=1;" value="start">
+        <mxCell id="hwla-fsm-20" value="&lt;b&gt;hwla_extract&lt;/b&gt;: extraction FSM (extraction domain)" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;align=left;" vertex="1" parent="1">
+          <mxGeometry x="40" y="400" width="600" height="30" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-21" value="IDLE" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="100" y="500" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-22" value="DUMP" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="400" y="500" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-23" value="ACK" style="rounded=1;arcSize=40;whiteSpace=wrap;html=1;fontStyle=1;fontSize=13;fillColor=#ffe6cc;strokeColor=#d79b00;" vertex="1" parent="1">
+          <mxGeometry x="700" y="500" width="120" height="44" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-24" value="" style="ellipse;html=1;fillColor=#333333;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="30" y="512" width="20" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-25" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-24" target="hwla-fsm-21">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-26" value="reset" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;fontStyle=2;align=center;" vertex="1" parent="1">
+          <mxGeometry x="10" y="488" width="60" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-27" value="dump_req = 1&lt;br&gt;(synchronized)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-21" target="hwla-fsm-22">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-28" value="last beat of the&lt;br&gt;last sample accepted" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-22" target="hwla-fsm-23">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="hwla-fsm-29" value="dump_req = 0" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;jumpStyle=arc;jumpSize=10;endArrow=block;endFill=1;strokeColor=#4d4d4d;fontColor=#333333;fontSize=11;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="hwla-fsm-23" target="hwla-fsm-21">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="800" y="460" />
+              <mxPoint x="760" y="600"/>
+              <mxPoint x="160" y="600"/>
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_ra_ram" edge="1" parent="1" source="ra" target="ram" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.1;" value="re, raddr">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="722" y="245" />
-              <mxPoint x="722" y="280" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e_ram_beat" edge="1" parent="1" source="ram" target="beat" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.6;entryX=0;entryY=0.5;" value="sample">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="e_efsm_ack" edge="1" parent="1" source="efsm" target="s_ack" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=1;entryY=0.5;" value="dump_ack">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="930" y="560" />
-              <mxPoint x="600" y="560" />
-              <mxPoint x="600" y="537" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="hwla-fsm-30" value="DUMP: DEPTH samples read from dump_addr, dump_ack = 1 in ACK" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;fontStyle=2;align=center;align=center;" vertex="1" parent="1">
+          <mxGeometry x="300" y="620" width="500" height="30" as="geometry"/>
         </mxCell>
       </root>
     </mxGraphModel>

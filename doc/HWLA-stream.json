@@ -1,0 +1,14 @@
+{ "signal": [
+  { "name": "extract_clk_i",   "wave": "p........|...." },
+  { "name": "m_axis_tvalid_o", "wave": "01.......|...0" },
+  { "name": "m_axis_tready_i", "wave": "1..0.1...|...." },
+  { "name": "m_axis_tdata_o",  "wave": "x345..345|345x",
+    "data": ["probes", "ts[7:0]", "ts[15:8]", "probes", "ts[7:0]", "ts[15:8]", "probes", "ts[7:0]", "ts[15:8]"] },
+  { "name": "m_axis_tlast_o",  "wave": "0........|..10" },
+  {},
+  { "name": "sample",          "wave": "x2....2..|2..x", "data": ["0 (oldest)", "1", "DEPTH-1"] }
+  ],
+  "head": { "text": "8 probes, 16-bit timestamp, TDATA_WIDTH = 8 : 3 beats per sample, from the LSB" },
+  "foot": { "text": "beat held while tready = 0, tlast with the last beat of the capture" },
+  "config": { "hscale": 2 }
+}
