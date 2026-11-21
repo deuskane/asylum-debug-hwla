@@ -122,8 +122,7 @@ begin
   -----------------------------------------------------------------------------
   dut : hwla
     generic map (
-      NB_PROBE         => NB_PROBE
-     ,DEPTH            => DEPTH
+      DEPTH            => DEPTH
      ,PRE_TRIGGER      => PRE_TRIGGER
      ,TIMESTAMP_WIDTH  => TIMESTAMP_WIDTH
      ,CHANGE_ONLY      => CHANGE_ONLY

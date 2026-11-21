@@ -7,7 +7,8 @@
 -------------------------------------------------------------------------------
 -- Description:
 -- Top of the lint and synthesis targets (lint_ghdl, lint_ghdl_synth_*,
--- syn_*) : hwla, same generics and ports.
+-- syn_*) : hwla, same generics and ports. NB_PROBE sizes the ports of the
+-- wrapper (the ports of hwla are unconstrained).
 -------------------------------------------------------------------------------
 -- Copyright (c) 2026
 -------------------------------------------------------------------------------
@@ -17,6 +18,7 @@
 -- 2026-10-22  2.0      mrosiere TIMESTAMP_WIDTH, CHANGE_ONLY, TDATA_WIDTH
 -- 2026-11-20  2.1      mrosiere hwla_wrapper (was hwla_synth_top), library
 --                               asylum
+-- 2026-11-21  3.0      mrosiere NB_PROBE no longer a generic of hwla
 -------------------------------------------------------------------------------
 
 library ieee;
@@ -58,7 +60,6 @@ begin
 
   ins_hwla : entity asylum.hwla
     generic map (
-      NB_PROBE         => NB_PROBE,
       DEPTH            => DEPTH,
       PRE_TRIGGER      => PRE_TRIGGER,
       TIMESTAMP_WIDTH  => TIMESTAMP_WIDTH,
