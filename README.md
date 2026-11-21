@@ -179,14 +179,14 @@ Figures of the `syn_*` targets (`make nonreg_syn`, see [Targets](#targets)): [sy
 
 | Configuration | LUT¹ | LUTRAM¹ | FF¹ | CARRY4¹ | MUXF7/F8¹ | BRAM¹ | DSP¹ | Area² (µm²) | kGE³ |
 |---|---|---|---|---|---|---|---|---|---|
-| `syn_default` (8 / 256 / 16, 128 pre-trigger samples, changes only) | 151 | 0 | 80 | 12 | 16 | 0.5 | 0 | 243453.49 | 64.859 |
-| `syn_pre_trigger_0` (8 / 256 / 16, no pre-trigger sample) | 157 | 0 | 80 | 12 | 4 | 0.5 | 0 | 241343.97 | 64.297 |
-| `syn_pre_trigger_max` (8 / 256 / 16, no post-trigger sample) | 151 | 0 | 80 | 12 | 0 | 0.5 | 0 | 243499.79 | 64.871 |
-| `syn_all_samples` (8 / 256 / 0, every sample stored) | 126 | 48 | 63 | 8 | 3 | 0 | 0 | 83382.47 | 22.214 |
-| `syn_uart` (8 / 256 / 16, 3 beats of 8 bits) | 166 | 0 | 82 | 12 | 16 | 0.5 | 0 | 241943.29 | 64.456 |
-| `syn_min` (1 / 2 / 0, every sample stored) | 47 | 0 | 23 | 0 | 3 | 0 | 0 | 972.18 | 0.259 |
+| `syn_default` (8 / 256 / 16, 128 pre-trigger samples, changes only) | 73 | 0 | 80 | 12 | 15 | 0.5 | 0 | 243453.49 | 64.859 |
+| `syn_pre_trigger_0` (8 / 256 / 16, no pre-trigger sample) | 79 | 0 | 80 | 12 | 4 | 0.5 | 0 | 241343.97 | 64.297 |
+| `syn_pre_trigger_max` (8 / 256 / 16, no post-trigger sample) | 73 | 0 | 80 | 12 | 0 | 0.5 | 0 | 243499.79 | 64.871 |
+| `syn_all_samples` (8 / 256 / 0, every sample stored) | 73 | 48 | 63 | 8 | 3 | 0 | 0 | 83382.47 | 22.214 |
+| `syn_uart` (8 / 256 / 16, 3 beats of 8 bits) | 86 | 0 | 82 | 12 | 15 | 0.5 | 0 | 241943.29 | 64.456 |
+| `syn_min` (1 / 2 / 0, every sample stored) | 29 | 0 | 23 | 0 | 3 | 0 | 0 | 972.18 | 0.259 |
 
-¹ Xilinx Artix-7 (LUT6), Yosys 0.33 `synth_xilinx -flatten -noiopad -noclkbuf`, before place and route: every cell of the netlist is counted, Vivado may differ. An `INV` counts as a `LUT1`: `synth_xilinx` puts one on the reset pin of each flip-flop with the active-low reset. Where the capture RAM goes: one `RAMB18E1` (half a 36 Kb block, BRAM 0.5) for 256 x 24 bits, 12 `RAM64M` (48 LUTRAM) for the 256 x 8 bits of `syn_all_samples`, flip-flops for the 2 x 1 bit of `syn_min`.
+¹ Xilinx Artix-7 (LUT6), Yosys 0.33 `synth_xilinx -flatten -noiopad -noclkbuf`, before place and route: every cell of the netlist is counted, Vivado may differ. Identical cells are merged as a vendor tool does (`opt_merge -share_all`): the inverters of an active-low reset net become one; every remaining cell is counted, an `INV` as a `LUT1`. Where the capture RAM goes: one `RAMB18E1` (half a 36 Kb block, BRAM 0.5) for 256 x 24 bits, 12 `RAM64M` (48 LUTRAM) for the 256 x 8 bits of `syn_all_samples`, flip-flops for the 2 x 1 bit of `syn_min`.
 
 ² SkyWater sky130 `sky130_fd_sc_hd`, typical corner (tt, 25 °C, 1.80 V), Yosys 0.33 `synth` + `dfflibmap` + `abc -liberty`: standard-cell area only, no timing constraint, no buffering, clock tree or placement. There is no SRAM macro: the capture RAM becomes `DEPTH x (NB_PROBE + TIMESTAMP_WIDTH)` flip-flops and their read multiplexer, most of the area; a real ASIC would use an SRAM macro.
 
