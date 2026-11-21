@@ -56,7 +56,7 @@ Part of the [Asylum project](https://github.com/deuskane/asylum-project), a coll
 
 ## Overview
 
-The HWLA watches signals inside an FPGA design, like a logic analyzer on a bench. At each rising edge of the trigger clock it samples `NB_PROBE` probes and one trigger, stores a capture of `DEPTH` samples around the trigger (`PRE_TRIGGER` samples before the trigger sample) in a RAM, then sends the capture on an AXI-Stream master clocked by another clock, for example to a UART transmitter. [tools/hwla2vcd.py](tools/hwla2vcd.py) rebuilds a VCD file from the received bytes, to be viewed with GTKWave.
+The HWLA watches signals inside an FPGA design, like a logic analyzer on a bench. At each rising edge of the trigger clock it samples the probes (`probe_i`, `NB_PROBE` bits: its width is the number of probes) and one trigger, stores a capture of `DEPTH` samples around the trigger (`PRE_TRIGGER` samples before the trigger sample) in a RAM, then sends the capture on an AXI-Stream master clocked by another clock, for example to a UART transmitter. [tools/hwla2vcd.py](tools/hwla2vcd.py) rebuilds a VCD file from the received bytes, to be viewed with GTKWave.
 
 It has no register: the configuration is made of generics, a capture is started with the `arm_i` input and `armed_o` / `triggered_o` give its progress. A stored sample is a timestamp and the probes; with `CHANGE_ONLY = true` a sample is stored only when the probes change, so a capture covers much more than `DEPTH` clock cycles.
 
@@ -98,8 +98,7 @@ use     asylum.hwla_pkg.all;
 
   ins_hwla : hwla
     generic map
-    ( NB_PROBE         => 8
-     ,DEPTH            => 1024
+    ( DEPTH            => 1024
      ,PRE_TRIGGER      => 256
      ,TIMESTAMP_WIDTH  => 16
      ,CHANGE_ONLY      => true
@@ -110,17 +109,19 @@ use     asylum.hwla_pkg.all;
      ,trig_arst_b_i    => arst_b_design
      ,arm_i            => '1'               -- continuous captures
      ,trigger_i        => my_trigger
-     ,probe_i          => my_probes
+     ,probe_i          => my_probes         -- std_logic_vector(8-1 downto 0) : 8 probes
      ,armed_o          => led_armed
      ,triggered_o      => led_triggered
      ,extract_clk_i    => clk_uart
      ,extract_arst_b_i => arst_b_uart
-     ,m_axis_tdata_o   => uart_tdata
+     ,m_axis_tdata_o   => uart_tdata        -- std_logic_vector(8-1 downto 0) : TDATA_WIDTH bits
      ,m_axis_tvalid_o  => uart_tvalid
      ,m_axis_tready_i  => uart_tready
      ,m_axis_tlast_o   => open
     );
 ```
+
+`probe_i` and `m_axis_tdata_o` are unconstrained: the number of probes `NB_PROBE` is the width of the actual of `probe_i` (a signal of any range, or in VHDL-2008 an expression such as a concatenation `a & b`, whose rightmost bit is the probe 0). The actual of `m_axis_tdata_o` must be `hwla_tdata_width(hwla_sample_width(NB_PROBE, TIMESTAMP_WIDTH), TDATA_WIDTH)` bits: `TDATA_WIDTH` bits, or with `TDATA_WIDTH = 0` the sample (`NB_PROBE + TIMESTAMP_WIDTH` bits) rounded up to a multiple of 8. Another width is a length error at elaboration (simulation and synthesis).
 
 Then on the host (8 probes, 1024 samples, 256 pre-trigger samples, 16-bit timestamp, 8-bit beats, trigger clock of 20 ns):
 
@@ -141,7 +142,7 @@ Top-level entity: **`hwla`** ([hdl/hwla.vhd](hdl/hwla.vhd)), component in `asylu
 | `trig_arst_b_i` | in | std_logic | Asynchronous reset of the trigger domain, active low |
 | `arm_i` | in | std_logic | 1: start a capture (taken into account when the HWLA is idle). Pulse: one capture; held high: a new capture after each extraction |
 | `trigger_i` | in | std_logic | Trigger condition, active high (level) |
-| `probe_i` | in | std_logic_vector(NB_PROBE-1 downto 0) | Probed signals, synchronous to `trig_clk_i` |
+| `probe_i` | in | std_logic_vector (unconstrained) | Probed signals, synchronous to `trig_clk_i`; its width is the number of probes `NB_PROBE`, its rightmost bit is the probe 0 (any range) |
 | `armed_o` | out | std_logic | 1: capture started, trigger not yet seen (pre-trigger samples, then wait for the trigger) |
 | `triggered_o` | out | std_logic | 1: trigger seen, capture not yet extracted (post-trigger samples, extraction) |
 
@@ -151,7 +152,7 @@ Top-level entity: **`hwla`** ([hdl/hwla.vhd](hdl/hwla.vhd)), component in `asylu
 |------|-----------|------|-------------|
 | `extract_clk_i` | in | std_logic | Extraction clock (AXI-Stream clock) |
 | `extract_arst_b_i` | in | std_logic | Asynchronous reset of the extraction domain, active low |
-| `m_axis_tdata_o` | out | std_logic_vector | Beat of a sample, `hwla_tdata_width(hwla_sample_width(NB_PROBE, TIMESTAMP_WIDTH), TDATA_WIDTH)` bits (see [Stream format](#stream-format)) |
+| `m_axis_tdata_o` | out | std_logic_vector (unconstrained) | Beat of a sample; the caller gives exactly `hwla_tdata_width(hwla_sample_width(NB_PROBE, TIMESTAMP_WIDTH), TDATA_WIDTH)` bits (see [Getting Started](#getting-started) and [Stream format](#stream-format)) |
 | `m_axis_tvalid_o` | out | std_logic | Beat valid |
 | `m_axis_tready_i` | in | std_logic | Beat accepted by the slave |
 | `m_axis_tlast_o` | out | std_logic | Last beat of the capture |
@@ -164,18 +165,19 @@ Generics of `hwla`:
 
 | Name | Type | Default | Description |
 |------|------|---------|-------------|
-| `NB_PROBE` | positive | `8` | Number of probes |
 | `DEPTH` | positive | `256` | Number of stored samples of a capture: depth of the RAM, a power of 2, at least 2 |
 | `PRE_TRIGGER` | natural | `128` | Number of stored samples before the trigger sample (0 to `DEPTH - 1`) |
 | `TIMESTAMP_WIDTH` | natural | `16` | Width of the timestamp of a sample (0: no timestamp) |
 | `CHANGE_ONLY` | boolean | `true` | `true`: a sample is stored only if the probes changed (and for the first sample, the trigger sample and the timestamp 0); `false`: every sample is stored |
 | `TDATA_WIDTH` | natural | `0` | Width of `m_axis_tdata_o` (multiple of 8); 0: one beat per sample, `tdata` is the sample rounded up to an integer number of bytes |
 
+The number of probes `NB_PROBE` is not a generic: it is the width of `probe_i` (`probe_i'length`).
+
 Derived values (functions of `asylum.hwla_pkg`): sample width `hwla_sample_width = NB_PROBE + TIMESTAMP_WIDTH`, `tdata` width `hwla_tdata_width(sample width, TDATA_WIDTH)`, beats per sample `hwla_nb_beat(sample width, TDATA_WIDTH)`. The RAM (`DEPTH` x sample width bits) sets most of the area.
 
 ## Resources
 
-Figures of the `syn_*` targets (`make nonreg_syn`, see [Targets](#targets)): [syn/hwla_wrapper.vhd](syn/hwla_wrapper.vhd) with the generics of each configuration, synthesized by Yosys and its GHDL plugin; the reports are in the build directory of each target. Configurations as `NB_PROBE` / `DEPTH` / `TIMESTAMP_WIDTH`, so a RAM of `DEPTH` words of `NB_PROBE + TIMESTAMP_WIDTH` bits.
+Figures of the `syn_*` targets (`make nonreg_syn`, see [Targets](#targets)): [syn/hwla_wrapper.vhd](syn/hwla_wrapper.vhd) with the generics of each configuration (its generic `NB_PROBE` sizes `probe_i`), synthesized by Yosys and its GHDL plugin; the reports are in the build directory of each target. Configurations as `NB_PROBE` / `DEPTH` / `TIMESTAMP_WIDTH`, so a RAM of `DEPTH` words of `NB_PROBE + TIMESTAMP_WIDTH` bits.
 
 | Configuration | LUT¹ | LUTRAM¹ | FF¹ | CARRY4¹ | MUXF7/F8¹ | BRAM¹ | DSP¹ | Area² (µm²) | kGE³ |
 |---|---|---|---|---|---|---|---|---|---|
@@ -287,7 +289,7 @@ Checks counted as the `=> OK` lines of the log, configuration `basic`; the sampl
 | `first_sample` | 22 | `PRE_TRIGGER > 0` | First sample of a capture equal to the last stored sample of the previous capture: stored anyway |
 | `async_reset` | 22 | all | Asynchronous reset of both domains during an extraction: outputs low without clock edge, capture lost, then a new capture (new origin of the timestamp) |
 
-Configurations (generics of the targets):
+Configurations (generics of the targets; `NB_PROBE` of `tb_hwla` sizes the probes given to `hwla`):
 
 | Configuration | NB_PROBE | DEPTH | PRE_TRIGGER | TIMESTAMP_WIDTH | CHANGE_ONLY | TDATA_WIDTH | Trigger / extraction clock | Checks |
 |---------------|----------|-------|-------------|-----------------|-------------|-------------|----------------------------|--------|
