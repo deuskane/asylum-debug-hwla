@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0"/>
         <mxCell id="1" parent="0"/>
-        <mxCell id="hwla-ov-1" value="generics: NB_PROBE, DEPTH, PRE_TRIGGER, TIMESTAMP_WIDTH, CHANGE_ONLY, TDATA_WIDTH" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;fontStyle=2;align=center;" vertex="1" parent="1">
+        <mxCell id="hwla-ov-1" value="generics: DEPTH, PRE_TRIGGER, TIMESTAMP_WIDTH, CHANGE_ONLY, TDATA_WIDTH (NB_PROBE = probe_i&#39;length)" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;verticalAlign=middle;rounded=0;fontSize=10;fontColor=#666666;fontStyle=2;align=center;" vertex="1" parent="1">
           <mxGeometry x="160" y="100" width="900" height="30" as="geometry"/>
         </mxCell>
         <mxCell id="hwla-ov-2" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">

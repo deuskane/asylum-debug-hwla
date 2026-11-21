@@ -11,6 +11,8 @@
 -- Date        Version  Author   Description
 -- 2026-10-22  1.0      mrosiere Created
 -- 2026-10-22  2.0      mrosiere hwla_sample_width, hwla_nb_beat, TDATA_WIDTH
+-- 2026-11-21  3.0      mrosiere hwla : generic NB_PROBE removed, probe_i and
+--                               m_axis_tdata_o unconstrained
 -------------------------------------------------------------------------------
 
 library IEEE;
@@ -46,7 +48,6 @@ package hwla_pkg is
 -- [COMPONENT_INSERT][BEGIN]
 component hwla is
   generic (
-    NB_PROBE         : positive := 8;                                        -- Number of probes
     DEPTH            : positive := 256;                                      -- Number of stored samples of a capture (power of 2)
     PRE_TRIGGER      : natural  := 128;                                      -- Number of stored samples before the trigger sample (0 to DEPTH-1)
     TIMESTAMP_WIDTH  : natural  := 16;                                       -- Width of the timestamp of a sample (0 : no timestamp)
@@ -59,14 +60,14 @@ component hwla is
     trig_arst_b_i    : in  std_logic;                                        -- Asynchronous reset, active low
     arm_i            : in  std_logic;                                        -- 1 : start a capture (when idle). Tied to 1 : a new capture after each extraction
     trigger_i        : in  std_logic;                                        -- 1 : trigger condition
-    probe_i          : in  std_logic_vector(NB_PROBE-1 downto 0);            -- Probed signals
+    probe_i          : in  std_logic_vector;                                 -- Probed signals, any range (NB_PROBE = probe_i'length)
     armed_o          : out std_logic;                                        -- 1 : capture started, trigger not yet seen
     triggered_o      : out std_logic;                                        -- 1 : trigger seen, capture not yet extracted
 
     -- Extraction domain
     extract_clk_i    : in  std_logic;
     extract_arst_b_i : in  std_logic;                                        -- Asynchronous reset, active low
-    m_axis_tdata_o   : out std_logic_vector(hwla_tdata_width(hwla_sample_width(NB_PROBE,TIMESTAMP_WIDTH),TDATA_WIDTH)-1 downto 0); -- Beat of a sample
+    m_axis_tdata_o   : out std_logic_vector;                                 -- Beat of a sample, hwla_tdata_width(hwla_sample_width(NB_PROBE,TIMESTAMP_WIDTH),TDATA_WIDTH) bits
     m_axis_tvalid_o  : out std_logic;
     m_axis_tready_i  : in  std_logic;
     m_axis_tlast_o   : out std_logic                                         -- 1 : last beat of the capture

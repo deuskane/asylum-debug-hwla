@@ -22,9 +22,11 @@ CAPI=2:
 #                               post_run hooks written by tb_hwla_uart
 #                               One tb_hwla test per target (TEST) :
 #                               sim_<configuration>_<test>
+# 2026-11-21  3.0.0    mrosiere Generic NB_PROBE removed, probe_i and
+#                               m_axis_tdata_o unconstrained
 #-----------------------------------------------------------------------------
 
-name        : asylum:debug:HWLA:2.0.0
+name        : asylum:debug:HWLA:3.0.0
 description : Hardware Logic Analyzer
 
 #=========================================
