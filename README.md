@@ -336,13 +336,13 @@ To run a list of scenarios, build the testbench once, then run the list without 
 
 ```bash
 make sim_basic                   # build and elaboration (TESTS_LIST empty)
-fusesoc --cores-root . run --build-root build --no-export --run --target sim_basic asylum:debug:HWLA:2.0.0 --TESTS_LIST=capture,async_reset,capture
+fusesoc --cores-root . run --build-root build --no-export --run --target sim_basic asylum:debug:HWLA:3.0.0 --TESTS_LIST=capture,async_reset,capture
 ```
 
 or in the build directory of the target. `EXTRA_OPTIONS` replaces every generic set by the target: repeat the generics of the configuration, else their default values (`basic`) apply:
 
 ```bash
-cd build/asylum_debug_HWLA_2.0.0/sim_basic-ghdl
+cd build/asylum_debug_HWLA_3.0.0/sim_basic-ghdl
 make run EXTRA_OPTIONS="-gTESTS_LIST=frozen,capture -gNB_PROBE=8 -gDEPTH=32 -gPRE_TRIGGER=16 -gTIMESTAMP_WIDTH=16 -gCHANGE_ONLY=false -gTDATA_WIDTH=32 -gTRIG_CLK_PERIOD=14 -gEXTRACT_CLK_PERIOD=10"
 ```
 
