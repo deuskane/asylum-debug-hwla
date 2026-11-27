@@ -271,6 +271,12 @@ Named signals: `--signal NAME=MSB[:LSB]` (repeated) dumps the probes `MSB` downt
 python3 tools/hwla2vcd.py capture.bin --args-file probes.args -o capture.vcd
 ```
 
+Several captures in one VCD file: `--merge` places each capture after the previous one from their timestamps and puts the probes at `x` (gray in GTKWave) between two captures; a `capture` variable gives the number of the capture. The timestamp counts the clock cycles since the reset modulo `2**TIMESTAMP_WIDTH`: the distance shown is the real one modulo `2**TIMESTAMP_WIDTH` clock cycles (a longer pause between two captures is shown shorter). `--gap N` forces a distance of `N` clock cycles between the last sample of a capture and the first one of the next (default without timestamp: 16).
+
+```bash
+python3 tools/hwla2vcd.py capture.bin --args-file probes.args --merge -o captures.vcd
+```
+
 ## Registers
 
 This IP has no software-visible registers: the configuration is made of generics, the control and the status are the ports `arm_i`, `armed_o` and `triggered_o`.
