@@ -70,7 +70,7 @@ It has no register: the configuration is made of generics, a capture is started 
 - `CHANGE_ONLY = true`: a sample is stored only if the probes changed, and also for the first sample of a capture, for the trigger sample and when the timestamp is 0, so the time between two stored samples is always given by their timestamps
 - AXI-Stream master: one sample per beat (`TDATA_WIDTH = 0`, `tdata` rounded up to bytes) or `NB_BEAT` beats of `TDATA_WIDTH` bits per sample, from the LSB; `tlast` on the last beat of the capture; one beat per clock cycle, back pressure supported
 - No capture is started while the previous one is not extracted: the RAM is never written and read at the same time
-- [tools/hwla2vcd.py](tools/hwla2vcd.py): VCD files rebuilt from the byte stream (file or serial port)
+- [tools/hwla2vcd.py](tools/hwla2vcd.py): VCD files rebuilt from the byte stream (file or serial port); copied to `hwla/hwla2vcd.py` in the build directory of every target that uses this core (fileset `tools` of the default target), e.g. next to the bitstream of a design that instantiates the HWLA
 
 ## Block Diagram
 
@@ -239,7 +239,7 @@ The first beat of a capture is sent a few clock cycles of `extract_clk_i` after 
 
 ### VCD file (tools/hwla2vcd.py)
 
-[tools/hwla2vcd.py](tools/hwla2vcd.py) (Python 3, no dependency; `pyserial` for `--port`) rebuilds one VCD file per capture from the byte stream: time 0 is the first sample of the capture, the probes (one wire per probe, or one bus with `--bus`) and a `trigger` wire, high during the clock cycle of the trigger sample. Its parameters are the generics of the HWLA and the period of the trigger clock.
+[tools/hwla2vcd.py](tools/hwla2vcd.py) (Python 3, no dependency; `pyserial` for `--port`) rebuilds one VCD file per capture from the byte stream: time 0 is the first sample of the capture, the probes (one wire per probe, one bus with `--bus`, or named signals with `--signal`) and a `trigger` wire, high during the clock cycle of the trigger sample. Its parameters are the generics of the HWLA and the period of the trigger clock.
 
 ```bash
 # Bytes received on a UART and saved in a file (Linux)
@@ -248,7 +248,34 @@ cat /dev/ttyUSB0 > capture.bin
 python3 tools/hwla2vcd.py capture.bin -n 8 -d 1024 -p 256 -t 16 -w 8 --period 20 --names valid,ready,d0,d1,d2,d3,d4,d5 -o capture.vcd
 ```
 
-`--format hex` reads a text file of hexadecimal bytes (as written by `tb_hwla_uart`), `--capture N` writes only the capture `N`. With several captures, the files are `<output>_<n>.vcd`. `--args-file FILE` (or `@FILE`) reads the arguments from a file, one per line, as `tb_hwla_uart` writes them in `hwla2vcd.args`.
+`--format hex` reads a text file of hexadecimal bytes (as written by `tb_hwla_uart`), `--capture N` writes only the capture `N`. With several captures, the files are `<output>_<n>.vcd`. `--args-file FILE` (or `@FILE`) reads the arguments from a file, one per line, as `tb_hwla_uart` writes them in `hwla2vcd.args`; with `--args-file`, empty lines and lines starting with `#` are ignored.
+
+Named signals: `--signal NAME=MSB[:LSB]` (repeated) dumps the probes `MSB` downto `LSB` as the vector `NAME`, or the probe `MSB` as the wire `NAME`; with `--signal`, only the named signals and `trigger` are in the VCD. The configuration of the HWLA of a design and the names of its probes fit in one file:
+
+```bash
+# probes.args : one argument per line
+-n
+8
+-d
+1024
+-p
+256
+--period
+20
+--signal=valid=0
+--signal=ready=1
+--signal=data=7:2
+```
+
+```bash
+python3 tools/hwla2vcd.py capture.bin --args-file probes.args -o capture.vcd
+```
+
+Several captures in one VCD file: `--merge` places each capture after the previous one from their timestamps and puts the probes at `x` (gray in GTKWave) between two captures; a `capture` variable gives the number of the capture. The timestamp counts the clock cycles since the reset modulo `2**TIMESTAMP_WIDTH`: the distance shown is the real one modulo `2**TIMESTAMP_WIDTH` clock cycles (a longer pause between two captures is shown shorter). `--gap N` forces a distance of `N` clock cycles between the last sample of a capture and the first one of the next (default without timestamp: 16).
+
+```bash
+python3 tools/hwla2vcd.py capture.bin --args-file probes.args --merge -o captures.vcd
+```
 
 ## Registers
 

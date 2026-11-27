@@ -24,9 +24,13 @@ CAPI=2:
 #                               sim_<configuration>_<test>
 # 2026-11-21  3.0.0    mrosiere Generic NB_PROBE removed, probe_i and
 #                               m_axis_tdata_o unconstrained
+# 2026-11-27  3.1.0    mrosiere hwla2vcd.py : named signals (--signal),
+#                               comments in the --args-file files ; copied
+#                               to hwla/ in the work root of the users ;
+#                               --merge (one VCD, gray between the captures)
 #-----------------------------------------------------------------------------
 
-name        : asylum:debug:HWLA:3.0.0
+name        : asylum:debug:HWLA:3.1.0
 description : Hardware Logic Analyzer
 
 #=========================================
@@ -81,12 +85,22 @@ filesets:
   sim_uart:
     files        :
       - sim/uart/tb_hwla_uart.vhd
-      - tools/hwla2vcd.py    : {file_type : user, copyto : hwla2vcd.py}
       - sim/uart/check_vcd.py : {file_type : user, copyto : check_vcd.py}
     file_type    : vhdlSource-2008
     depend       :
       - bitvis:verification:uvvm
       - asylum:communication:uart
+
+  #---------------------------------------
+  # Host tool : VCD files rebuilt from the captures, copied to hwla/ in the
+  # work root of every target that uses this core (as the OpenOCD kit copies
+  # its files to rbb/) : hwla/hwla2vcd.py next to the build of a design
+  #---------------------------------------
+  tools:
+  #---------------------------------------
+    files        :
+      - tools/hwla2vcd.py    : {copyto : hwla/hwla2vcd.py}
+    file_type    : user
 
   #---------------------------------------
   syn:
@@ -116,6 +130,7 @@ targets:
     description     : Default Target
     filesets        :
       - hdl
+      - tools
     toplevel        : hwla
     default_tool    : ghdl
 
@@ -616,7 +631,7 @@ scripts:
   # are written by tb_hwla_uart from its generics
   #---------------------------------------
   hwla2vcd :
-    cmd : [python3, hwla2vcd.py, hwla_uart.hex, --format, hex, --args-file, hwla2vcd.args, --bus, probe, -o, hwla_uart.vcd]
+    cmd : [python3, hwla/hwla2vcd.py, hwla_uart.hex, --format, hex, --args-file, hwla2vcd.args, --bus, probe, -o, hwla_uart.vcd]
 
   check_vcd :
     cmd : [python3, check_vcd.py, --args-file, check_vcd.args]

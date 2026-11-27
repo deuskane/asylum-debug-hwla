@@ -24,10 +24,21 @@
 #              cycles). Without timestamp, the samples are consecutive
 #              (CHANGE_ONLY = false).
 #              VCD : time 0 is the first sample of the capture, the probes
-#              (one wire per probe or one bus) and a "trigger" wire, high
-#              during the clock cycle of the trigger sample. One VCD file
-#              per capture (<output>_<n>.vcd when there are several).
-#              --args-file FILE or @FILE : arguments read from FILE, one per line.
+#              (one wire per probe, one bus, or named signals : --signal
+#              NAME=MSB[:LSB], a bit or a vector of probes) and a "trigger"
+#              wire, high during the clock cycle of the trigger sample. One
+#              VCD file per capture (<output>_<n>.vcd when there are several),
+#              or one VCD file for all the captures with --merge : a capture
+#              is placed after the previous one from their timestamps (the
+#              timestamp counts the clock cycles since the reset modulo
+#              2**TIMESTAMP_WIDTH : the real distance can be longer by a
+#              multiple of it ; --gap forces the distance), the probes at x
+#              (gray in GTKWave) between two captures, and a "capture"
+#              variable (number of the capture).
+#              --args-file FILE or @FILE : arguments read from FILE, one per
+#              line (--args-file : empty lines and lines starting with # are
+#              ignored), e.g. the configuration of the HWLA of a design and
+#              the names of its probes.
 #-----------------------------------------------------------------------------
 # Copyright (c) 2026
 #-----------------------------------------------------------------------------
@@ -35,6 +46,10 @@
 # Date        Version  Author   Description
 # 2026-10-22  1.0      mrosiere Created
 # 2026-10-22  1.1      mrosiere Arguments from a file (--args-file, @FILE)
+# 2026-11-27  1.2      mrosiere Named signals (--signal NAME=MSB[:LSB]) ; comments
+#                               in the --args-file files
+# 2026-11-27  1.3      mrosiere --merge : all the captures in one VCD file, placed
+#                               from their timestamps, gray between them ; --gap
 #-----------------------------------------------------------------------------
 
 import argparse
@@ -184,58 +199,114 @@ def vcd_id(index):
     return ident
 
 
-def write_vcd(path, samples, cfg, names, bus, period_ps, comment):
-    """VCD of a capture : probes and trigger, time 0 is the first sample"""
-    trig_time = samples[cfg.pre_trigger].time
+def write_vcd(path, segments, cfg, variables, period_ps, comment, merged=False):
+    """VCD of one or several captures : the variables (name, msb, lsb : a bit
+    or a vector of the probes) and the trigger. segments : list of (offset,
+    samples), the time of a sample is offset + its time in the capture (clock
+    cycles), time 0 is the first sample of the first capture. merged : a
+    "capture" variable (number of the capture) and the variables at x (gray
+    in a waveform viewer) between two captures"""
+    nb_var = len(variables)
+    cap_id = vcd_id(nb_var + 1)
 
     with open(path, "w") as f:
         f.write(f"$comment\n  {comment}\n$end\n")
         f.write("$timescale 1ps $end\n")
         f.write("$scope module hwla $end\n")
         f.write(f"$var wire 1 {vcd_id(0)} trigger $end\n")
-        if bus:
-            f.write(f"$var wire {cfg.nb_probe} {vcd_id(1)} {bus} [{cfg.nb_probe-1}:0] $end\n")
-        else:
-            for i, name in enumerate(names):
+        for i, (name, msb, lsb) in enumerate(variables):
+            width = msb - lsb + 1
+            if width == 1:
                 f.write(f"$var wire 1 {vcd_id(i+1)} {name} $end\n")
+            else:
+                f.write(f"$var wire {width} {vcd_id(i+1)} {name} [{width-1}:0] $end\n")
+        if merged:
+            f.write(f"$var integer 32 {cap_id} capture $end\n")
         f.write("$upscope $end\n$enddefinitions $end\n")
 
+        def field(value, msb, lsb):
+            return (value >> lsb) & ((1 << (msb - lsb + 1)) - 1)
+
         def dump_probes(value, prev):
-            """VCD lines of the probes that changed"""
+            """VCD lines of the variables that changed"""
             lines = []
-            if bus:
-                if prev is None or value != prev:
-                    lines.append(f"b{value:0{cfg.nb_probe}b} {vcd_id(1)}")
-            else:
-                for i in range(cfg.nb_probe):
-                    bit = (value >> i) & 1
-                    if prev is None or bit != (prev >> i) & 1:
-                        lines.append(f"{bit}{vcd_id(i+1)}")
+            for i, (name, msb, lsb) in enumerate(variables):
+                v = field(value, msb, lsb)
+                if prev is None or v != field(prev, msb, lsb):
+                    if msb == lsb:
+                        lines.append(f"{v}{vcd_id(i+1)}")
+                    else:
+                        lines.append(f"b{v:0{msb-lsb+1}b} {vcd_id(i+1)}")
             return lines
 
-        # Events : (time in clock cycles, probes or None, trigger or None)
-        events = {}
-        for s in samples:
-            events.setdefault(s.time, [None, None])[0] = s.probes
-        events.setdefault(trig_time    , [None, None])[1] = 1
-        events.setdefault(trig_time + 1, [None, None])[1] = 0
+        def dump_gray():
+            """VCD lines of the variables at x (between two captures)"""
+            lines = []
+            for i, (name, msb, lsb) in enumerate(variables):
+                if msb == lsb:
+                    lines.append(f"x{vcd_id(i+1)}")
+                else:
+                    lines.append(f"bx {vcd_id(i+1)}")
+            return lines + [f"bx {cap_id}"]
 
-        # Time 0 (first sample) : initial values, then the changes only
+        # Events : time in clock cycles -> [probes or None, trigger or None,
+        # number of the capture that starts or None, gray]
+        events = {}
+        def event(time):
+            return events.setdefault(time, [None, None, None, False])
+        for n, (offset, samples) in enumerate(segments):
+            for s in samples:
+                event(offset + s.time)[0] = s.probes
+            trig_time = offset + samples[cfg.pre_trigger].time
+            event(trig_time    )[1] = 1
+            event(trig_time + 1)[1] = 0
+            event(offset)[2] = n
+            if n + 1 < len(segments):
+                end = offset + samples[-1].time + 1
+                if end < segments[n + 1][0]:
+                    event(end)[3] = True
+
+        # Time 0 (first sample) : initial values, then the changes only ; all
+        # the variables again at the first sample of each capture
         prev = None
         for t in sorted(events):
-            probes, trig = events[t]
+            probes, trig, start, gray = events[t]
             lines = []
             if t == 0 or trig is not None:
                 lines.append(f"{trig or 0}{vcd_id(0)}")
+            if gray:
+                lines += dump_gray()
+                prev = None
+            if merged and start is not None:
+                lines.append(f"b{start:b} {cap_id}")
             if probes is not None:
-                lines += dump_probes(probes, prev)
+                lines += dump_probes(probes, None if start is not None else prev)
                 prev = probes
             if t == 0:
                 f.write("#0\n$dumpvars\n" + "\n".join(lines) + "\n$end\n")
             elif lines:
                 f.write(f"#{t * period_ps}\n" + "\n".join(lines) + "\n")
-        # End of the capture : one clock cycle after the last sample
+        # End : one clock cycle after the last sample
         f.write(f"#{(max(events) + 1) * period_ps}\n")
+
+
+def merge_offsets(captures, cfg, gap):
+    """Offset of each capture in a merged VCD, in clock cycles : the next
+    capture starts gap clock cycles after the last sample of the previous one
+    or, without gap, after the difference of their timestamps (the timestamp
+    counts the clock cycles since the reset modulo 2**TIMESTAMP_WIDTH : the
+    real distance can be longer by a multiple of 2**TIMESTAMP_WIDTH)"""
+    offsets = [0]
+    for prev, cur in zip(captures, captures[1:]):
+        if gap is not None:
+            delta = gap
+        elif cfg.timestamp_width:
+            period = 1 << cfg.timestamp_width
+            delta  = (cur[0].timestamp - prev[-1].timestamp) % period or period
+        else:
+            delta = 16
+        offsets.append(offsets[-1] + prev[-1].time + delta)
+    return offsets
 
 
 def expand_args_files(argv):
@@ -247,7 +318,8 @@ def expand_args_files(argv):
     args = []
     for path in known.args_file:
         with open(path) as f:
-            args += [line.strip() for line in f if line.strip()]
+            args += [line.strip() for line in f
+                     if line.strip() and not line.strip().startswith("#")]
     return args + rest
 
 
@@ -284,7 +356,17 @@ def main(argv=None):
     parser.add_argument("--period", type=float, default=10.0, help="Period of the trigger clock in ns (default : 10)")
     parser.add_argument("--names", help="Names of the probes, from probe 0, separated by commas")
     parser.add_argument("--bus", help="Dump the probes as one bus with this name, instead of one wire per probe")
+    parser.add_argument("--signal", action="append", metavar="NAME=MSB[:LSB]",
+                        help="Dump the probes MSB downto LSB (or the probe MSB) as the signal NAME (can be repeated) : "
+                             "only the named signals are dumped, instead of the wires or the bus")
     parser.add_argument("--capture", type=int, help="Write only the capture number CAPTURE (from 0)")
+    parser.add_argument("--merge", action="store_true",
+                        help="One VCD file for all the captures : placed from their timestamps (distance modulo "
+                             "2**TIMESTAMP_WIDTH clock cycles), the probes at x (gray) between two captures, "
+                             "a \"capture\" variable gives the number of the capture")
+    parser.add_argument("--gap", type=int, help="With --merge : clock cycles between the last sample of a capture "
+                                                "and the first one of the next (default : from the timestamps, "
+                                                "16 without timestamp)")
     args = parser.parse_args(expand_args_files(sys.argv[1:] if argv is None else argv))
 
     try:
@@ -292,12 +374,29 @@ def main(argv=None):
     except ValueError as e:
         parser.error(str(e))
 
-    names = [f"probe{i}" for i in range(cfg.nb_probe)]
-    if args.names:
-        given = [n.strip() for n in args.names.split(",")]
-        if len(given) > cfg.nb_probe:
-            parser.error(f"--names : {len(given)} names for {cfg.nb_probe} probes")
-        names[:len(given)] = given
+    # Variables of the VCD : (name, msb, lsb)
+    if args.signal:
+        variables = []
+        for s in args.signal:
+            try:
+                name, rng = s.split("=")
+                bits = [int(b) for b in rng.split(":")]
+                msb, lsb = (bits[0], bits[0]) if len(bits) == 1 else bits
+            except ValueError:
+                parser.error(f"--signal {s} : NAME=MSB[:LSB] expected")
+            if not (0 <= lsb <= msb < cfg.nb_probe) or not name.strip():
+                parser.error(f"--signal {s} : bits {msb}:{lsb} not in the {cfg.nb_probe} probes")
+            variables.append((name.strip(), msb, lsb))
+    elif args.bus:
+        variables = [(args.bus, cfg.nb_probe - 1, 0)]
+    else:
+        names = [f"probe{i}" for i in range(cfg.nb_probe)]
+        if args.names:
+            given = [n.strip() for n in args.names.split(",")]
+            if len(given) > cfg.nb_probe:
+                parser.error(f"--names : {len(given)} names for {cfg.nb_probe} probes")
+            names[:len(given)] = given
+        variables = [(name, i, i) for i, name in enumerate(names)]
 
     captures = decode_captures(read_input(args), cfg)
     if not captures:
@@ -310,16 +409,29 @@ def main(argv=None):
     else:
         base = os.path.splitext(args.input)[0]
 
-    selected = range(len(captures)) if args.capture is None else [args.capture]
     period_ps = round(args.period * 1000)
+    config    = (f"NB_PROBE {cfg.nb_probe}, DEPTH {cfg.depth}, PRE_TRIGGER {cfg.pre_trigger}, "
+                 f"TIMESTAMP_WIDTH {cfg.timestamp_width}, TDATA_WIDTH {cfg.tdata_width}, period {args.period} ns")
+    if args.merge:
+        offsets  = merge_offsets(captures, cfg, args.gap)
+        segments = list(zip(offsets, captures))
+        path     = f"{base}.vcd"
+        comment  = (f"hwla2vcd : {len(captures)} captures merged (distance from the timestamps modulo "
+                    f"2**TIMESTAMP_WIDTH clock cycles, or --gap), {config}")
+        write_vcd(path, segments, cfg, variables, period_ps, comment, merged=True)
+        for n, (offset, samples) in enumerate(segments):
+            print(f"hwla2vcd : capture {n} : {cfg.depth} samples, clock cycles {offset} to {offset + samples[-1].time}, "
+                  f"trigger at the clock cycle {offset + samples[cfg.pre_trigger].time} -> {path}")
+        return 0
+
+    selected = range(len(captures)) if args.capture is None else [args.capture]
     for n in selected:
         if n >= len(captures):
             sys.exit(f"hwla2vcd : capture {n} not in the input ({len(captures)} captures)")
         samples = captures[n]
         path    = f"{base}.vcd" if len(selected) == 1 else f"{base}_{n}.vcd"
-        comment = (f"hwla2vcd : capture {n}, NB_PROBE {cfg.nb_probe}, DEPTH {cfg.depth}, PRE_TRIGGER {cfg.pre_trigger}, "
-                   f"TIMESTAMP_WIDTH {cfg.timestamp_width}, TDATA_WIDTH {cfg.tdata_width}, period {args.period} ns")
-        write_vcd(path, samples, cfg, names, args.bus, period_ps, comment)
+        comment = f"hwla2vcd : capture {n}, {config}"
+        write_vcd(path, [(0, samples)], cfg, variables, period_ps, comment)
         print(f"hwla2vcd : capture {n} : {cfg.depth} samples, {samples[-1].time + 1} clock cycles, "
               f"trigger at the clock cycle {samples[cfg.pre_trigger].time} -> {path}")
     return 0
