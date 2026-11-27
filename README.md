@@ -70,7 +70,7 @@ It has no register: the configuration is made of generics, a capture is started 
 - `CHANGE_ONLY = true`: a sample is stored only if the probes changed, and also for the first sample of a capture, for the trigger sample and when the timestamp is 0, so the time between two stored samples is always given by their timestamps
 - AXI-Stream master: one sample per beat (`TDATA_WIDTH = 0`, `tdata` rounded up to bytes) or `NB_BEAT` beats of `TDATA_WIDTH` bits per sample, from the LSB; `tlast` on the last beat of the capture; one beat per clock cycle, back pressure supported
 - No capture is started while the previous one is not extracted: the RAM is never written and read at the same time
-- [tools/hwla2vcd.py](tools/hwla2vcd.py): VCD files rebuilt from the byte stream (file or serial port)
+- [tools/hwla2vcd.py](tools/hwla2vcd.py): VCD files rebuilt from the byte stream (file or serial port); copied to `hwla/hwla2vcd.py` in the build directory of every target that uses this core (fileset `tools` of the default target), e.g. next to the bitstream of a design that instantiates the HWLA
 
 ## Block Diagram
 
