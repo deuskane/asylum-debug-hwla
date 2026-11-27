@@ -239,7 +239,7 @@ The first beat of a capture is sent a few clock cycles of `extract_clk_i` after 
 
 ### VCD file (tools/hwla2vcd.py)
 
-[tools/hwla2vcd.py](tools/hwla2vcd.py) (Python 3, no dependency; `pyserial` for `--port`) rebuilds one VCD file per capture from the byte stream: time 0 is the first sample of the capture, the probes (one wire per probe, or one bus with `--bus`) and a `trigger` wire, high during the clock cycle of the trigger sample. Its parameters are the generics of the HWLA and the period of the trigger clock.
+[tools/hwla2vcd.py](tools/hwla2vcd.py) (Python 3, no dependency; `pyserial` for `--port`) rebuilds one VCD file per capture from the byte stream: time 0 is the first sample of the capture, the probes (one wire per probe, one bus with `--bus`, or named signals with `--signal`) and a `trigger` wire, high during the clock cycle of the trigger sample. Its parameters are the generics of the HWLA and the period of the trigger clock.
 
 ```bash
 # Bytes received on a UART and saved in a file (Linux)
@@ -248,7 +248,28 @@ cat /dev/ttyUSB0 > capture.bin
 python3 tools/hwla2vcd.py capture.bin -n 8 -d 1024 -p 256 -t 16 -w 8 --period 20 --names valid,ready,d0,d1,d2,d3,d4,d5 -o capture.vcd
 ```
 
-`--format hex` reads a text file of hexadecimal bytes (as written by `tb_hwla_uart`), `--capture N` writes only the capture `N`. With several captures, the files are `<output>_<n>.vcd`. `--args-file FILE` (or `@FILE`) reads the arguments from a file, one per line, as `tb_hwla_uart` writes them in `hwla2vcd.args`.
+`--format hex` reads a text file of hexadecimal bytes (as written by `tb_hwla_uart`), `--capture N` writes only the capture `N`. With several captures, the files are `<output>_<n>.vcd`. `--args-file FILE` (or `@FILE`) reads the arguments from a file, one per line, as `tb_hwla_uart` writes them in `hwla2vcd.args`; with `--args-file`, empty lines and lines starting with `#` are ignored.
+
+Named signals: `--signal NAME=MSB[:LSB]` (repeated) dumps the probes `MSB` downto `LSB` as the vector `NAME`, or the probe `MSB` as the wire `NAME`; with `--signal`, only the named signals and `trigger` are in the VCD. The configuration of the HWLA of a design and the names of its probes fit in one file:
+
+```bash
+# probes.args : one argument per line
+-n
+8
+-d
+1024
+-p
+256
+--period
+20
+--signal=valid=0
+--signal=ready=1
+--signal=data=7:2
+```
+
+```bash
+python3 tools/hwla2vcd.py capture.bin --args-file probes.args -o capture.vcd
+```
 
 ## Registers
 
